@@ -1,23 +1,22 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.request.model;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.apache.catalina.User;
-import org.apache.coyote.Request;
+
+import java.time.LocalDateTime;
 
 /**
- * TODO Sprint add-controllers.
+ * TODO Sprint add-item-requests.
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder
-public class Item {
+public class ItemRequest {
     Long id;
-    String name;
     String description;
-    Boolean available;
-    User owner;
-    Request request;
+    User requestor;
+    LocalDateTime created;
 }
