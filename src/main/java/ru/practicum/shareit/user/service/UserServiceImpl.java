@@ -21,6 +21,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
     private final UserMapper userMapper;
+    private long nextId;
 
     @Autowired
     public UserServiceImpl(UserDao userDao, UserMapper userMapper) {
@@ -55,11 +56,9 @@ public class UserServiceImpl implements UserService {
             log.error("Добавлен существующий пользователь");
             throw new ValidationException("Пользователь c id " +
                     user.getId() + " уже зарегистрирован.");
-        } else {
-            Long nextId = Long.valueOf(userDao.getUsers().size() + 1);
-            user.setId(nextId);
         }
         checkMail(user);
+        user.setId(++nextId);
         userDao.getUsers().put(user.getId(), user);
         log.info("Вы добавили новошго пользователя - {}", user.getId());
         return userMapper.toUserDto(user);
@@ -74,8 +73,11 @@ public class UserServiceImpl implements UserService {
         UserDto usetToUpdate = userMapper.toUserDto(userDao.getUserbyId(id));
         String name = userDto.getName();
         String mail = userDto.getEmail();
-        if (mail!=null && userDao.getUserbyId(id).getId()!=userDto.getId()) {
+        if (mail!=null) {
             for (User userchek : userDao.getUsers().values()) {
+                if (userDto.getEmail().equals(userchek.getEmail()) && userDao.getUserbyId(id).getId().equals(userchek.getId())) {
+                    break;
+                }
                 if (userDto.getEmail().equals(userchek.getEmail())) {
                     throw new DublicateExeption("Почта уже занята другим пользователем");
                 }
