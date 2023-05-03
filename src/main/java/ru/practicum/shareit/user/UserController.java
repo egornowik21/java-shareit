@@ -6,7 +6,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable("userId") Long userId) {
-       return userService.patch(userId,userDto);
+        return userService.patch(userId, userDto);
     }
 
 }
