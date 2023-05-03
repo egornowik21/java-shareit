@@ -74,8 +74,12 @@ public class UserServiceImpl implements UserService {
         UserDto usetToUpdate = userMapper.toUserDto(userDao.getUserbyId(id));
         String name = userDto.getName();
         String mail = userDto.getEmail();
-        if (usetToUpdate.getEmail()!=null) {
-            checkMail(userMapper.inUserDto(usetToUpdate));
+        if (mail!=null && userDao.getUserbyId(id).getId()!=userDto.getId()) {
+            for (User userchek : userDao.getUsers().values()) {
+                if (userDto.getEmail().equals(userchek.getEmail())) {
+                    throw new DublicateExeption("Почта уже занята другим пользователем");
+                }
+            }
         }
         if (name == null || name.isEmpty() || name.isBlank()) {
             usetToUpdate.setName(usetToUpdate.getName());
