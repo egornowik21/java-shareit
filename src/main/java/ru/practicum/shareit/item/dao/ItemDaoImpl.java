@@ -41,14 +41,14 @@ public class ItemDaoImpl implements ItemDao {
         User user = userDao.getUsers().get(userId);
         checkItemUser(user);
         Item itemToUpdate = null;
-            for (Long updateItem : items.keySet()) {
-                if (updateItem.equals(itemId)) {
-                    itemToUpdate = items.get(updateItem);
-                    if (!(itemToUpdate.getOwner().getId().equals(user.getId()))) {
-                        throw new NotFoundException("Пользователь у вещи не найден");
-                    }
+        for (Long updateItem : items.keySet()) {
+            if (updateItem.equals(itemId)) {
+                itemToUpdate = items.get(updateItem);
+                if (!(itemToUpdate.getOwner().getId().equals(user.getId()))) {
+                    throw new NotFoundException("Пользователь у вещи не найден");
                 }
             }
+        }
         String name = itemInput.getName();
         Boolean status = itemInput.getAvailable();
         String description = itemInput.getDescription();
@@ -67,7 +67,7 @@ public class ItemDaoImpl implements ItemDao {
         } else {
             itemToUpdate.setDescription(description);
         }
-        items.put(itemId,itemToUpdate);
+        items.put(itemId, itemToUpdate);
         return itemMapper.toItemDto(itemToUpdate);
     }
 
@@ -78,12 +78,11 @@ public class ItemDaoImpl implements ItemDao {
         if (text != null && !(text.isEmpty()) && !(text.isBlank())) {
             for (Long itemId : items.keySet()) {
                 if (items.get(itemId).getName().toLowerCase().contains(textInput) || items.get(itemId).getDescription().toLowerCase().contains(textInput) &&
-                items.get(itemId).getAvailable()==true) {
+                        items.get(itemId).getAvailable()) {
                     itemDtoList.add(itemMapper.toItemDto(items.get(itemId)));
                 }
             }
-        }
-        else {
+        } else {
             return Collections.EMPTY_LIST;
         }
         return itemDtoList;

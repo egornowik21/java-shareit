@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.dao;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.DublicateExeption;
 import ru.practicum.shareit.exception.InvalidEmailException;

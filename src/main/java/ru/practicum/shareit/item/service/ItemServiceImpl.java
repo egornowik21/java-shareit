@@ -30,7 +30,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(Long itemId) {
         if (itemId == null || !(itemDao.getItemsMap().containsKey(itemId))) {
-            log.error("Вещи с id - {} не существует", itemId);
+            log.error("Вещь с id - {} не существует", itemId);
             throw new NotFoundException("Вещь не найдена");
         }
         return itemDao.getItemById(itemId);
@@ -47,15 +47,18 @@ public class ItemServiceImpl implements ItemService {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
-        return itemDao.patchItem(userId, item,itemId);
+        return itemDao.patchItem(userId, item, itemId);
     }
 
     @Override
     public ItemDto postItemByUser(@Valid Long userId, @Valid Item item) {
+        log.info("Добавлена новая вещь");
         return itemDao.postItemByUser(userId, item);
     }
+
     @Override
     public List<ItemDto> searchItem(String text) {
+        log.info("Выполнен поиск по вещам");
         return itemDao.searchItem(text);
     }
 }

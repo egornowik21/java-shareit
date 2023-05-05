@@ -18,5 +18,6 @@ public interface ItemDao {
     ItemDto postItemByUser(Long userId, Item item);
 
     ItemDto patchItem(Long userId, Item item, Long itemId);
+
     List<ItemDto> searchItem(String text);
 }
