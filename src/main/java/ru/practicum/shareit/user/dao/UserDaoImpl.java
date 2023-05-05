@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.dao;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.DublicateExeption;
@@ -15,15 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class UserDaoImpl implements UserDao {
     private final UserMapper userMapper;
     private final Map<Long, User> users = new HashMap<>();
     private long nextId;
 
-    @Autowired
-    public UserDaoImpl(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
 
     @Override
     public List<UserDto> findAll() {

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,13 +15,9 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
-
-    @Autowired
-    public UserServiceImpl(UserDao userDao) {
-        this.userDao = userDao;
-    }
 
     @Override
     public List<UserDto> findAll() {
@@ -54,7 +51,7 @@ public class UserServiceImpl implements UserService {
             log.error("Пользователь с id - {} не существует", id);
             throw new NotFoundException("пользователя не существует");
         }
-        log.info("Вы обновили текущего пользователя -  {}", userDto.getId());
+        log.info("Вы обновили текущего пользователя -  {}", id);
         return userDao.patch(id, userDto);
     }
 
