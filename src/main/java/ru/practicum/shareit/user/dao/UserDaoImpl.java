@@ -9,16 +9,14 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class UserDaoImpl implements UserDao {
     private final UserMapper userMapper;
     private final Map<Long, User> users = new HashMap<>();
+    private final Set<String> emailUniqSet = new HashSet<>();
     private long nextId;
 
 

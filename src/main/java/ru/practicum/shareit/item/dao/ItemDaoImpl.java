@@ -23,10 +23,10 @@ public class ItemDaoImpl implements ItemDao {
     @Override
     public List<ItemDto> findItemByUserId(Long userId) {
         User user = userDao.getUsers().get(userId);
-        List<ItemDto> itemDtoList = new ArrayList<>();
         if (user == null) {
             throw new NotFoundException("Пользователя не существует");
         }
+        List<ItemDto> itemDtoList = new ArrayList<>();
         for (Item item : items.values()) {
             if (user.getId().equals(item.getOwner().getId())) {
                 itemDtoList.add(itemMapper.toItemDto(item));
@@ -75,15 +75,11 @@ public class ItemDaoImpl implements ItemDao {
     public List<ItemDto> searchItem(String text) {
         ArrayList<ItemDto> itemDtoList = new ArrayList<>();
         String textInput = text.toLowerCase();
-        if (text != null && !(text.isEmpty()) && !(text.isBlank())) {
-            for (Long itemId : items.keySet()) {
-                if (items.get(itemId).getName().toLowerCase().contains(textInput) || items.get(itemId).getDescription().toLowerCase().contains(textInput) &&
-                        items.get(itemId).getAvailable()) {
-                    itemDtoList.add(itemMapper.toItemDto(items.get(itemId)));
-                }
+        for (Long itemId : items.keySet()) {
+            if (items.get(itemId).getName().toLowerCase().contains(textInput) || items.get(itemId).getDescription().toLowerCase().contains(textInput) &&
+                    items.get(itemId).getAvailable()) {
+                itemDtoList.add(itemMapper.toItemDto(items.get(itemId)));
             }
-        } else {
-            return Collections.EMPTY_LIST;
         }
         return itemDtoList;
     }

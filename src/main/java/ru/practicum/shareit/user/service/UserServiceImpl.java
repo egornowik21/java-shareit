@@ -29,7 +29,6 @@ public class UserServiceImpl implements UserService {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
-        log.info("Выведен фильм по Id - {}", userId);
         return userDao.getUserbyId(userId);
     }
 
@@ -50,7 +49,6 @@ public class UserServiceImpl implements UserService {
             log.error("Пользователь с id - {} не существует", id);
             throw new NotFoundException("пользователя не существует");
         }
-        log.info("Вы обновили текущего пользователя -  {}", id);
         return userDao.patch(id, userDto);
     }
 
@@ -61,6 +59,5 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Пользователя не сущетсвует");
         }
         userDao.deleteUserById(userId);
-        log.info("Вы удалили текущего пользователя - {}", userId);
     }
 }

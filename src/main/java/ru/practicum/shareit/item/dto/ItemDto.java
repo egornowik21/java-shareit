@@ -25,6 +25,5 @@ public class ItemDto {
     @NotNull(message = "Описание не может быть пустым")
     @NotEmpty(message = "Описание не может быть пустым")
     String description;
-    @NotNull(message = "Стаус не может быть пустым")
     Boolean available;
 }

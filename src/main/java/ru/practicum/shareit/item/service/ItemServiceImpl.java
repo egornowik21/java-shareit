@@ -52,13 +52,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto postItemByUser(@Valid Long userId, @Valid Item item) {
-        log.info("Добавлена новая вещь");
         return itemDao.postItemByUser(userId, item);
     }
 
     @Override
     public List<ItemDto> searchItem(String text) {
-        log.info("Выполнен поиск по вещам");
         return itemDao.searchItem(text);
     }
 }
