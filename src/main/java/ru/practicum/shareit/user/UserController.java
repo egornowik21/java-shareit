@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto saveNewUser(@RequestBody User user) {
+    public UserDto saveNewUser(@Valid @RequestBody User user) {
         log.info("POST/users - добавлен текущий пользователь.");
         return userService.create(user);
     }
