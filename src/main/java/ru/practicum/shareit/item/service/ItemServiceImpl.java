@@ -18,7 +18,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemDao itemDao;
 
-    @Override//
+    @Override
     public List<ItemDto> findItemByUserId(Long userId) {
         if (userId == null) {
             log.error("Пользователь с id - {} не существует", userId);
