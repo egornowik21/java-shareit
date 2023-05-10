@@ -10,6 +10,7 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -22,11 +23,11 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<UserDto> findAll() {
-        ArrayList<UserDto> userDtoList = new ArrayList<>();
-        for (Long user : getUsers().keySet()) {
-            userDtoList.add(userMapper.toUserDto(getUsers().get(user)));
-        }
-        return userDtoList;
+        Collection<User> userDtoList = getUsers().values();
+        return userDtoList
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     public Map<Long, User> getUsers() {
@@ -42,6 +43,7 @@ public class UserDaoImpl implements UserDao {
         checkMail(user);
         user.setId(++nextId);
         getUsers().put(user.getId(), user);
+        emailUniqSet.add(user.getEmail());
         return userMapper.toUserDto(user);
     }
 
@@ -50,15 +52,8 @@ public class UserDaoImpl implements UserDao {
         UserDto usetToUpdate = getUserbyId(id);
         String name = userDto.getName();
         String mail = userDto.getEmail();
-        if (mail != null) {
-            for (User userchek : getUsers().values()) {
-                if (userDto.getEmail().equals(userchek.getEmail()) && getUserbyId(id).getId().equals(userchek.getId())) {
-                    break;
-                }
-                if (userDto.getEmail().equals(userchek.getEmail())) {
-                    throw new DublicateExeption("Почта уже занята другим пользователем");
-                }
-            }
+        if (emailUniqSet.contains(mail)) {
+            throw new DublicateExeption("Почта уже занята другим пользователем");
         }
         if (name == null || name.isEmpty() || name.isBlank()) {
             usetToUpdate.setName(usetToUpdate.getName());

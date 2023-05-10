@@ -11,6 +11,7 @@ import ru.practicum.shareit.user.dao.UserDao;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,13 +27,11 @@ public class ItemDaoImpl implements ItemDao {
         if (user == null) {
             throw new NotFoundException("Пользователя не существует");
         }
-        List<ItemDto> itemDtoList = new ArrayList<>();
-        for (Item item : items.values()) {
-            if (user.getId().equals(item.getOwner().getId())) {
-                itemDtoList.add(itemMapper.toItemDto(item));
-            }
-        }
-        return itemDtoList;
+        Collection<Item> itemDtoList = items.values();
+        return itemDtoList.stream()
+                .filter(item -> user.getId().equals(item.getOwner().getId()))
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -40,14 +39,15 @@ public class ItemDaoImpl implements ItemDao {
         Item itemInput = item;
         User user = userDao.getUsers().get(userId);
         checkItemUser(user);
-        Item itemToUpdate = null;
-        for (Long updateItem : items.keySet()) {
-            if (updateItem.equals(itemId)) {
-                itemToUpdate = items.get(updateItem);
-                if (!(itemToUpdate.getOwner().getId().equals(user.getId()))) {
-                    throw new NotFoundException("Пользователь у вещи не найден");
-                }
-            }
+        Item itemToUpdate;
+        boolean updateItem = items.values().stream()
+                .filter(itemUpdate -> itemUpdate.equals(itemId) ||
+                        itemUpdate.getOwner().getId().equals(user.getId()))
+                .anyMatch(itemUpdate -> itemUpdate.getOwner().getId().equals(user.getId()));
+        if (!updateItem) {
+            throw new NotFoundException("Пользователь у вещи не найден");
+        } else {
+            itemToUpdate = items.get(itemId);
         }
         String name = itemInput.getName();
         Boolean status = itemInput.getAvailable();
@@ -73,15 +73,14 @@ public class ItemDaoImpl implements ItemDao {
 
     @Override
     public List<ItemDto> searchItem(String text) {
-        ArrayList<ItemDto> itemDtoList = new ArrayList<>();
+        Collection<Item> itemDtoList = items.values();
         String textInput = text.toLowerCase();
-        for (Long itemId : items.keySet()) {
-            if (items.get(itemId).getName().toLowerCase().contains(textInput) || items.get(itemId).getDescription().toLowerCase().contains(textInput) &&
-                    items.get(itemId).getAvailable()) {
-                itemDtoList.add(itemMapper.toItemDto(items.get(itemId)));
-            }
-        }
-        return itemDtoList;
+        return itemDtoList.stream()
+                .filter(item -> items.get(item.getId()).getName().toLowerCase().contains(textInput)
+                        || items.get(item.getId()).getDescription().toLowerCase().contains(textInput)
+                        && items.get(item.getId()).getAvailable())
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -91,11 +90,10 @@ public class ItemDaoImpl implements ItemDao {
 
     @Override
     public List<ItemDto> getAllItems() {
-        ArrayList<ItemDto> itemDtoList = new ArrayList<>();
-        for (Long itemId : items.keySet()) {
-            itemDtoList.add(itemMapper.toItemDto(items.get(itemId)));
-        }
-        return itemDtoList;
+        Collection<Item> itemDtoList = items.values();
+        return itemDtoList.stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -27,6 +27,7 @@ public class Item {
     @NotNull(message = "Описание не может быть пустым")
     @NotEmpty(message = "Описание не может быть пустым")
     String description;
+    @NotBlank(message = "Статус не может быть пустым")
     Boolean available;
     User owner;
     Request request;

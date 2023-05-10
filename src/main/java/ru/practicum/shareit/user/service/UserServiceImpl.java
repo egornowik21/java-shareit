@@ -8,7 +8,6 @@ import ru.practicum.shareit.user.dao.UserDao;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
-import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto create(@Valid User user) {
+    public UserDto create(User user) {
         if (userDao.getUsers().containsKey(user.getId())) {
             log.error("Добавлен существующий пользователь");
             throw new ValidationException("Пользователь c id " +
