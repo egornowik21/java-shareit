@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,9 +36,9 @@ public class ItemController {
 
     @PostMapping
     public ItemDto postItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                            @RequestBody Item item) {
+                            @RequestBody ItemDto itemDto) {
         log.info("POST/items - добавлена вещь для ID пользователя - {}.", userId);
-        return itemService.postItemByUser(userId, item);
+        return itemService.postItemByUser(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
@@ -49,12 +50,12 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam(value = "text", required = false) String query) {
-        if (query == null || query.isEmpty() || query.isBlank()) {
+    public List<ItemDto> searchItem(@RequestParam String text, @RequestHeader("X-Sharer-User-Id") Long userId) {
+        if (text == null || text.isEmpty() || text.isBlank()) {
             return Collections.EMPTY_LIST;
         }
         log.info("GET/items - выполнен поиск вещи.");
-        return itemService.searchItem(query);
+        return itemService.searchItem(text);
     }
 
 }

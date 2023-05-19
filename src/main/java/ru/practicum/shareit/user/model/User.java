@@ -1,10 +1,9 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
@@ -14,11 +13,20 @@ import javax.validation.constraints.NotBlank;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder
+@Entity
+@Table(name = "users")
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id")
     Long id;
-    @NotBlank(message = "Имя не может быть пустым")
+    @NotBlank
+    @Column(name="name",nullable = false,length = 320)
     String name;
-    @Email(message = "Не является почтовым адресом")
-    @NotBlank(message = "Почтовый адрес не может быть пустым")
+    @Column(name="email",nullable = false,length = 320)
+    @NotBlank
+    @Email
     String email;
 }

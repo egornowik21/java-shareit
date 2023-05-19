@@ -13,7 +13,7 @@ public interface ItemService {
 
     List<ItemDto> getAllItems();
 
-    ItemDto postItemByUser(Long userId, Item item);
+    ItemDto postItemByUser(Long userId, ItemDto itemDto);
 
     ItemDto patchItem(Long userId, Item item, Long itemId);
 
