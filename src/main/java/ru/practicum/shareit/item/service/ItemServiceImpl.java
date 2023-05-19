@@ -97,7 +97,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> searchItem(String text) {
-        return itemRepository.search(text)
+        String query = text.toLowerCase();
+        return itemRepository.search(query)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
