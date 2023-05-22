@@ -32,4 +32,10 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse invalideStateEsception(final InvalidStateException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
 }
