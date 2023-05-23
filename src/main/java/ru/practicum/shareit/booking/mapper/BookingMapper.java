@@ -16,6 +16,7 @@ public class BookingMapper {
                 .status(booking.getStatus())
                 .build();
     }
+
     public static Booking bookingDtoEntity(BookingDtoInput bookingDtoInput, User user, Item item) {
         return Booking.builder()
                 .id(bookingDtoInput.getId())

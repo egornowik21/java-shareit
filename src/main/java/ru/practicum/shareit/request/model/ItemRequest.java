@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.apache.catalina.User;
 
-import javax.persistence.Entity;
 import java.time.LocalDateTime;
 
 /**

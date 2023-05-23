@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.service;
 
-import ch.qos.logback.core.joran.conditional.IfAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,8 +11,6 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.exception.InvalidEmailException;
-import ru.practicum.shareit.exception.InvalidStateException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dao.ItemRepository;
@@ -21,10 +18,8 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -71,6 +66,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(Status.WAITING);
         return bookingRepository.save(booking);
     }
+
     @Transactional
     public Booking patchBookingByUser(@Valid Long userId, Long bookingId, Boolean approved) {
         User user = userRepository.findById(userId)
@@ -78,7 +74,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Вы не владелец вещи");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Вы не владелец вещи");
         }
         if (booking.getStatus().equals(Status.WAITING) && approved) {
             booking.setStatus(Status.APPROVED);
@@ -153,7 +149,7 @@ public class BookingServiceImpl implements BookingService {
                 bookingByState = bookingByUser.stream()
                         .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()) &&
                                 booking.getEnd().isAfter(LocalDateTime.now()))
-                        .sorted(Comparator.comparing(Booking::getStart))
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
                         .collect(Collectors.toList());
                 break;
             case FUTURE:

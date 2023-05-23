@@ -9,7 +9,6 @@ import ru.practicum.shareit.item.dto.ItemDtoWithDate;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,6 +47,7 @@ public class ItemController {
     public CommentDto postCommentByItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                         @RequestBody CommentDto commentDto,
                                         @PathVariable("itemId") Long itemId) {
+        log.info("POST/comments - добавлен комментарий от пользователя - {}.", userId);
         return itemService.postCommentByItem(userId, commentDto, itemId);
 
     }
