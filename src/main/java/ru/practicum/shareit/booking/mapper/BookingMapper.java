@@ -11,8 +11,9 @@ public class BookingMapper {
                 .id(booking.getId())
                 .start(booking.getStart())
                 .end(booking.getEnd())
-                .itemId(booking.getId())
-                .booker_id(booking.getBooker().getId())
+                .itemId(booking.getItem().getId())
+                .bookerId(booking.getBooker().getId())
+                .status(booking.getStatus())
                 .build();
     }
     public static Booking bookingDtoEntity(BookingDtoInput bookingDtoInput, User user, Item item) {

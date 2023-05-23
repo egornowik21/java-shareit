@@ -3,7 +3,9 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithDate;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -23,13 +25,14 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("/{itemId}")
-    public ItemDto getAllItemsByUser(@PathVariable long itemId) {
+    public ItemDtoWithDate getAllItemsByUser(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                             @PathVariable long itemId) {
         log.info("GET/items - получен список всех вещей.");
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public List<ItemDto> findItemByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDtoWithDate> findItemByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("GET/items - получен список всех вещей по ID пользователя - {}.", userId);
         return itemService.findItemByUserId(userId);
     }
@@ -39,6 +42,14 @@ public class ItemController {
                             @RequestBody ItemDto itemDto) {
         log.info("POST/items - добавлена вещь для ID пользователя - {}.", userId);
         return itemService.postItemByUser(userId, itemDto);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto postCommentByItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                        @RequestBody CommentDto commentDto,
+                                        @PathVariable("itemId") Long itemId) {
+        return itemService.postCommentByItem(userId, commentDto, itemId);
+
     }
 
     @PatchMapping("/{itemId}")

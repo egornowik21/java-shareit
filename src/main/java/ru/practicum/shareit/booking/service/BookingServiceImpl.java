@@ -3,8 +3,9 @@ package ru.practicum.shareit.booking.service;
 import ch.qos.logback.core.joran.conditional.IfAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -21,6 +22,7 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,14 +71,14 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(Status.WAITING);
         return bookingRepository.save(booking);
     }
-
+    @Transactional
     public Booking patchBookingByUser(@Valid Long userId, Long bookingId, Boolean approved) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ValidationException("Вы не владелец вещи");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Вы не владелец вещи");
         }
         if (booking.getStatus().equals(Status.WAITING) && approved) {
             booking.setStatus(Status.APPROVED);
@@ -151,7 +153,7 @@ public class BookingServiceImpl implements BookingService {
                 bookingByState = bookingByUser.stream()
                         .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()) &&
                                 booking.getEnd().isAfter(LocalDateTime.now()))
-                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .sorted(Comparator.comparing(Booking::getStart))
                         .collect(Collectors.toList());
                 break;
             case FUTURE:
@@ -162,7 +164,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case PAST:
                 bookingByState = bookingByUser.stream()
-                        .filter(booking -> booking.getStatus() == Status.APPROVED)
+                        .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
                         .collect(Collectors.toList());
                 break;
