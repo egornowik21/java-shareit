@@ -24,14 +24,11 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     long id;
-    @NotBlank(message = "Имя не может быть пустым")
     @Column(name = "name", nullable = false, length = 320)
     String name;
-    @NotBlank(message = "Описание не может быть пустым")
     @Column(name = "description", nullable = false, length = 320)
     String description;
     @Column(name = "is_available",nullable = false)
-    @NotNull
     Boolean available;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", referencedColumnName = "id")

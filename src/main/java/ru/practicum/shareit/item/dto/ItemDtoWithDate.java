@@ -8,7 +8,6 @@ import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -18,14 +17,10 @@ import java.util.List;
 public class ItemDtoWithDate {
     long id;
     @NotBlank(message = "Имя не может быть пустым")
-    @NotNull(message = "Имя не может быть пустым")
-    @NotEmpty(message = "Описание не может быть пустым")
     String name;
     @NotBlank(message = "Описание не может быть пустым")
-    @NotNull(message = "Описание не может быть пустым")
-    @NotEmpty(message = "Описание не может быть пустым")
     String description;
-    @NotBlank
+    @NotNull
     Boolean available;
     User owner;
     BookingDtoInput lastBooking;

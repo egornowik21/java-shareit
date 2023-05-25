@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
@@ -25,11 +26,11 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Slf4j
@@ -53,10 +54,10 @@ public class ItemServiceImpl implements ItemService {
         for (Item item : usersItems) {
             List<CommentDto> commentByUser = commentRepository.findByItem_id(item.getId()).stream()
                     .map(CommentMapper::toCommentDto)
-                    .collect(Collectors.toList());
+                    .collect(toList());
             if (item.getOwner().getId().equals(userId)) {
                 ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
-                List<Booking> itemsBooking = bookingRepository.findByItem_id(item.getId());
+                List<Booking> itemsBooking = bookingRepository.findByItem_idOrderByStartAsc(item.getId());
                 itemDtoWithDate.setComments(commentByUser);
                 BookingDtoInput lastBooking = itemsBooking.stream()
                         .filter(booking -> booking.getStatus().equals(Status.APPROVED)
@@ -93,10 +94,10 @@ public class ItemServiceImpl implements ItemService {
         ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
         List<CommentDto> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
+                .collect(toList());
         itemDtoWithDate.setComments(commentByUser);
         if (item.getOwner().getId().equals(user.getId())) {
-            List<Booking> itemsBooking = bookingRepository.findByItem_id(itemId);
+            List<Booking> itemsBooking = bookingRepository.findByItem_idOrderByStartAsc(itemId);
 
             BookingDtoInput lastBooking = itemsBooking.stream()
                     .filter(booking -> booking.getStatus().equals(Status.APPROVED)
@@ -128,7 +129,7 @@ public class ItemServiceImpl implements ItemService {
         return itemDtoList
                 .stream()
                 .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -180,14 +181,14 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Comment> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .filter(comment -> comment.getAuthor().getId().equals(user.getId()))
-                .collect(Collectors.toList());
+                .collect(toList());
         if (!commentByUser.isEmpty()) {
             throw new ValidationException("Комментарий уже есть");
         }
-        List<Booking> bookingByUser = bookingRepository.findByBookerIdOrderByIdAsc(user.getId()).stream()
+        List<Booking> bookingByUser = bookingRepository.findByBooker_Id(user.getId()).stream()
                 .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now())
                         && booking.getStatus().equals(Status.APPROVED))
-                .collect(Collectors.toList());
+                .collect(toList());
         if (bookingByUser.isEmpty()) {
             throw new ValidationException("Бронирование не найдено");
         }
@@ -201,7 +202,7 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.search(query)
                 .stream()
                 .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void checkItem(Item item) {

@@ -19,12 +19,8 @@ import javax.validation.constraints.NotNull;
 public class ItemDto {
     long id;
     @NotBlank(message = "Имя не может быть пустым")
-    @NotNull(message = "Имя не может быть пустым")
-    @NotEmpty(message = "Описание не может быть пустым")
     String name;
     @NotBlank(message = "Описание не может быть пустым")
-    @NotNull(message = "Описание не может быть пустым")
-    @NotEmpty(message = "Описание не может быть пустым")
     String description;
     @NotBlank
     Boolean available;
