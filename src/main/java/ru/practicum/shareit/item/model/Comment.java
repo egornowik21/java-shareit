@@ -8,7 +8,8 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

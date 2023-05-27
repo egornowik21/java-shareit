@@ -6,15 +6,12 @@ import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
-/**
- * TODO Sprint add-controllers.
- */
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Data
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -28,7 +25,7 @@ public class Item {
     String name;
     @Column(name = "description", nullable = false, length = 320)
     String description;
-    @Column(name = "is_available",nullable = false)
+    @Column(name = "is_available", nullable = false)
     Boolean available;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", referencedColumnName = "id")

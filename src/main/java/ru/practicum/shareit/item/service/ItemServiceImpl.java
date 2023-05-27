@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
@@ -26,10 +25,11 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -49,40 +49,11 @@ public class ItemServiceImpl implements ItemService {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
-        List<ItemDtoWithDate> returnItemList = new ArrayList<>();
-        List<Item> usersItems = itemRepository.findByOwnerIdOrderByIdAsc(userId);
-        for (Item item : usersItems) {
-            List<CommentDto> commentByUser = commentRepository.findByItem_id(item.getId()).stream()
-                    .map(CommentMapper::toCommentDto)
-                    .collect(toList());
-            if (item.getOwner().getId().equals(userId)) {
-                ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
-                List<Booking> itemsBooking = bookingRepository.findByItem_idOrderByStartAsc(item.getId());
-                itemDtoWithDate.setComments(commentByUser);
-                BookingDtoInput lastBooking = itemsBooking.stream()
-                        .filter(booking -> booking.getStatus().equals(Status.APPROVED)
-                                && booking.getStart().isBefore(LocalDateTime.now()))
-                        .map(BookingMapper::bookingDtoInputId)
-                        .max(Comparator.comparing(BookingDtoInput::getStart))
-                        .orElse(null);
-
-                BookingDtoInput nextBooking = itemsBooking.stream()
-                        .filter(booking -> booking.getStatus().equals(Status.APPROVED)
-                                && booking.getStart().isAfter(LocalDateTime.now()))
-                        .map(BookingMapper::bookingDtoInputId)
-                        .min(Comparator.comparing(BookingDtoInput::getStart))
-                        .orElse(null);
-
-                if (lastBooking != null) {
-                    itemDtoWithDate.setLastBooking(lastBooking);
-                }
-                if (nextBooking != null) {
-                    itemDtoWithDate.setNextBooking(nextBooking);
-                }
-                returnItemList.add(itemDtoWithDate);
-            }
-        }
-        return returnItemList;
+        return itemRepository.findByOwnerIdOrderByIdAsc(userId)
+                .stream()
+                .map(this::setCommenstsToItem)
+                .map(this::setBookingToItem)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -215,5 +186,38 @@ public class ItemServiceImpl implements ItemService {
         if (item.getAvailable() == null) {
             throw new InvalidEmailException("Неверный формат статуса");
         }
+    }
+
+    private ItemDtoWithDate setCommenstsToItem(Item item) {
+        ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
+        List<CommentDto> commentByUser = commentRepository.findByItem_id(item.getId()).stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(toList());
+        itemDtoWithDate.setComments(commentByUser);
+        return itemDtoWithDate;
+    }
+
+    private ItemDtoWithDate setBookingToItem(ItemDtoWithDate itemDtoWithDate) {
+        List<Booking> itemsBooking = bookingRepository.findByItem_idOrderByStartAsc(itemDtoWithDate.getId());
+        BookingDtoInput lastBooking = itemsBooking.stream()
+                .filter(booking -> booking.getStatus().equals(Status.APPROVED)
+                        && booking.getStart().isBefore(LocalDateTime.now()))
+                .map(BookingMapper::bookingDtoInputId)
+                .max(Comparator.comparing(BookingDtoInput::getStart))
+                .orElse(null);
+
+        BookingDtoInput nextBooking = itemsBooking.stream()
+                .filter(booking -> booking.getStatus().equals(Status.APPROVED)
+                        && booking.getStart().isAfter(LocalDateTime.now()))
+                .map(BookingMapper::bookingDtoInputId)
+                .min(Comparator.comparing(BookingDtoInput::getStart))
+                .orElse(null);
+        if (lastBooking != null) {
+            itemDtoWithDate.setLastBooking(lastBooking);
+        }
+        if (nextBooking != null) {
+            itemDtoWithDate.setNextBooking(nextBooking);
+        }
+        return itemDtoWithDate;
     }
 }

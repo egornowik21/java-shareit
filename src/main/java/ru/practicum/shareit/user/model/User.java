@@ -4,14 +4,11 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 
-/**
- * TODO Sprint add-controllers.
- */
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Data
+@Getter
+@Setter
 @Builder
 @Entity
 @Table(name = "users")
@@ -20,13 +17,10 @@ import javax.validation.constraints.NotBlank;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id")
     Long id;
-    @NotBlank
-    @Column(name="name",nullable = false,length = 320)
+    @Column(name = "name", nullable = false, length = 320)
     String name;
-    @Column(name="email",nullable = false,length = 320)
-    @NotBlank
-    @Email
+    @Column(name = "email", nullable = false, length = 320)
     String email;
 }

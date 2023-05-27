@@ -8,9 +8,7 @@ import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-item-requests.
- */
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder

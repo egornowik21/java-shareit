@@ -7,12 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dao.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.exception.InvalidStateException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dao.ItemRepository;
@@ -38,7 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
-    public Booking postBookingByUser(@Valid Long userId, @Valid BookingDtoInput bookingDtoInput) {
+    public BookingDto postBookingByUser(@Valid Long userId, @Valid BookingDtoInput bookingDtoInput) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item item = itemRepository.findById(bookingDtoInput.getItemId())
@@ -68,11 +67,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setItem(item);
         booking.setBooker(user);
         booking.setStatus(Status.WAITING);
-        return bookingRepository.save(booking);
+        Booking bookingtoReturn = bookingRepository.save(booking);
+        return BookingMapper.bookingDto(bookingtoReturn);
     }
 
     @Transactional
-    public Booking patchBookingByUser(@Valid Long userId, Long bookingId, Boolean approved) {
+    public BookingDto patchBookingByUser(@Valid Long userId, Long bookingId, Boolean approved) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Booking booking = bookingRepository.findById(bookingId)
@@ -87,29 +87,30 @@ public class BookingServiceImpl implements BookingService {
         } else {
             booking.setStatus(Status.REJECTED);
         }
-        return bookingRepository.save(booking);
+        Booking bookingtoReturn = bookingRepository.save(booking);
+        return BookingMapper.bookingDto(bookingtoReturn);
     }
 
 
-    public Booking getBookingById(Long bookingId, Long userId) {
+    public BookingDto getBookingById(Long bookingId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         if (booking.getBooker().equals(user) || booking.getItem().getOwner().equals(user)) {
-            return booking;
+            return BookingMapper.bookingDto(booking);
         } else {
             throw new NotFoundException("Вы не владелец или не арендатор вещи");
         }
     }
 
-    public List<Booking> getAllBokingsByUser(String state, Long userId) {
+    public List<BookingDto> getAllBokingsByUser(String state, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        List<Booking> bookingByState;
+        List<Booking> bookingByState = new ArrayList<>();
         switch (state) {
             case "ALL":
-                bookingByState = bookingRepository.findByBooker_Id(userId,Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByBooker_Id(userId, Sort.by(DESC, "start"));
                 break;
             case "WAITING":
                 bookingByState = bookingRepository.findByBooker_Id(userId).stream()
@@ -128,25 +129,25 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case "REJECTED":
                 bookingByState = bookingRepository.findByBooker_Id(user.getId()).stream()
-                    .filter(booking -> booking.getStatus() == Status.REJECTED ||
-                            booking.getStatus() == Status.CANCELED)
-                    .sorted(Comparator.comparing(Booking::getStart).reversed())
-                    .collect(Collectors.toList());
+                        .filter(booking -> booking.getStatus() == Status.REJECTED ||
+                                booking.getStatus() == Status.CANCELED)
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .collect(Collectors.toList());
                 break;
-            default:
-                throw new ValidationException("Unknown state: " + state);
         }
-        return bookingByState;
+        return bookingByState.stream()
+                .map(BookingMapper::bookingDto)
+                .collect(Collectors.toList());
     }
 
 
-    public List<Booking> getAllBokingsByOwner(String state, Long userId) {
+    public List<BookingDto> getAllBokingsByOwner(String state, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        List<Booking> bookingByState;
+        List<Booking> bookingByState = new ArrayList<>();
         switch (state) {
             case "ALL":
-                bookingByState = bookingRepository.findByItem_Owner_Id(user.getId(),Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByItem_Owner_Id(user.getId(), Sort.by(DESC, "start"));
                 break;
             case "WAITING":
                 bookingByState = bookingRepository.findByItem_Owner_Id(user.getId()).stream()
@@ -165,14 +166,14 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case "REJECTED":
                 bookingByState = bookingRepository.findByItem_Owner_Id(user.getId()).stream()
-                    .filter(booking -> booking.getStatus() == Status.REJECTED ||
-                            booking.getStatus() == Status.CANCELED)
-                    .sorted(Comparator.comparing(Booking::getStart).reversed())
-                    .collect(Collectors.toList());;
+                        .filter(booking -> booking.getStatus() == Status.REJECTED ||
+                                booking.getStatus() == Status.CANCELED)
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .collect(Collectors.toList());
                 break;
-            default:
-                throw new ValidationException("Unknown state: " + state);
         }
-        return bookingByState;
+        return bookingByState.stream()
+                .map(BookingMapper::bookingDto)
+                .collect(Collectors.toList());
     }
 }

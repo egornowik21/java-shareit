@@ -7,12 +7,8 @@ import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-/**
- * TODO Sprint add-controllers.
- */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder
@@ -22,7 +18,7 @@ public class ItemDto {
     String name;
     @NotBlank(message = "Описание не может быть пустым")
     String description;
-    @NotBlank
+    @NotNull
     Boolean available;
     User owner;
 }
