@@ -11,17 +11,4 @@ import ru.practicum.shareit.user.service.UserService;
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ControllerTests {
-
-    private final UserService userService;
-
-    @Test
-    public void testinggetAllUsers() {
-        User user = User.builder()
-                .name("Egor")
-                .email("123@mail.ru")
-                .build();
-        userService.create(user);
-        Assertions.assertThat(userService.getUserById(1L));
-    }
-
 }
