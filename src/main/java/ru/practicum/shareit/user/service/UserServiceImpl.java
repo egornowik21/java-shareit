@@ -4,59 +4,74 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dao.UserDao;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
-import javax.validation.ValidationException;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserDao userDao;
+
+    private final UserRepository repository;
 
     @Override
     public List<UserDto> findAll() {
-        return userDao.findAll();
+        Collection<User> userDtoList = repository.findAll();
+        return userDtoList
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(Long userId) {
-        if (userId == null || !(userDao.getUsers().containsKey(userId))) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        if (repository.findById(userId).isEmpty()) {
             log.error("Пользователь с id - {} не существует", userId);
-            throw new NotFoundException("Пользователь не найден");
         }
-        return userDao.getUserbyId(userId);
+        return UserMapper.toUserDto(user);
     }
 
 
     @Override
-    public UserDto create(User user) {
-        if (userDao.getUsers().containsKey(user.getId())) {
-            log.error("Добавлен существующий пользователь");
-            throw new ValidationException("Пользователь c id " +
-                    user.getId() + " уже зарегистрирован.");
-        }
-        return userDao.create(user);
+    public UserDto create(UserDto userDto) {
+        User newUser = repository.save(UserMapper.inUserDto(userDto));
+        return UserMapper.toUserDto(newUser);
     }
 
     @Override
     public UserDto patch(Long id, UserDto userDto) {
-        if (!userDao.getUsers().containsKey(id)) {
-            log.error("Пользователь с id - {} не существует", id);
-            throw new NotFoundException("пользователя не существует");
+        User user = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        if (userDto.getEmail()==null || userDto.getEmail().isBlank()) {
+            user.setEmail(user.getEmail());
         }
-        return userDao.patch(id, userDto);
+        else {
+            user.setEmail(userDto.getEmail());
+        }
+        if (userDto.getName()==null || userDto.getName().isBlank()) {
+            user.setName(user.getName());
+        }
+        else {
+            user.setName(userDto.getName());
+        }
+        repository.save(user);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     public void deleteUserById(Long userId) {
-        if (!userDao.getUsers().containsKey(userId)) {
+        if (repository.findById(userId).isEmpty()) {
             log.error("Пользователь с id - {} не существует", userId);
-            throw new NotFoundException("Пользователя не сущетсвует");
+            throw new NotFoundException("Пользователь не найден");
         }
-        userDao.deleteUserById(userId);
+        repository.deleteById(userId);
     }
 }

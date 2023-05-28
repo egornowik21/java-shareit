@@ -12,7 +12,7 @@ public interface UserService {
 
     UserDto getUserById(Long userId);
 
-    UserDto create(@Valid User user);
+    UserDto create(@Valid UserDto userDto);
 
     UserDto patch(Long id, UserDto userDto);
 

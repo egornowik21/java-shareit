@@ -1,20 +1,18 @@
-package ru.practicum.shareit.request.model;
+package ru.practicum.shareit.item.dto;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
-
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder
-public class ItemRequest {
-    Long id;
-    String description;
-    User requestor;
+public class CommentDto {
+    long id;
+    String text;
+    String authorName;
     LocalDateTime created;
 }

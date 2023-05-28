@@ -7,28 +7,27 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 
-
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "items")
-public class Item {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     long id;
-    @Column(name = "name", nullable = false, length = 320)
-    String name;
-    @Column(name = "description", nullable = false, length = 320)
-    String description;
-    @Column(name = "is_available", nullable = false)
-    Boolean available;
+    @Column(name = "text", nullable = false, length = 320)
+    String text;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    @JoinColumn(name = "author_id", referencedColumnName = "id")
     @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
-    User owner;
+    User author;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "item_id", referencedColumnName = "id")
+    @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
+    Item item;
 }

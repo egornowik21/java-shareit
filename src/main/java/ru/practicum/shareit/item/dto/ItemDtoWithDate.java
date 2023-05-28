@@ -4,15 +4,17 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Builder
-public class ItemDto {
+public class ItemDtoWithDate {
     long id;
     @NotBlank(message = "Имя не может быть пустым")
     String name;
@@ -21,4 +23,7 @@ public class ItemDto {
     @NotNull
     Boolean available;
     User owner;
+    BookingDtoInput lastBooking;
+    BookingDtoInput nextBooking;
+    List<CommentDto> comments;
 }
