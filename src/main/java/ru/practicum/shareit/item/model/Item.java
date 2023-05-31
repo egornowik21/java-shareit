@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -31,4 +32,8 @@ public class Item {
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
     @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
     User owner;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "request_id", referencedColumnName = "id")
+    @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
+    ItemRequest request;
 }

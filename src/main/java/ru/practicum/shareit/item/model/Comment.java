@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
@@ -30,4 +31,6 @@ public class Comment {
     @JoinColumn(name = "item_id", referencedColumnName = "id")
     @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
     Item item;
+    @Column(name = "created", nullable = false)
+    LocalDateTime created;
 }

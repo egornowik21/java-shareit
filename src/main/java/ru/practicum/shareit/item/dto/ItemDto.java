@@ -21,4 +21,5 @@ public class ItemDto {
     @NotNull
     Boolean available;
     User owner;
+    Long requestId;
 }
