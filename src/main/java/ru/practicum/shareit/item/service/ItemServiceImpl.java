@@ -2,6 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
@@ -46,12 +49,13 @@ public class ItemServiceImpl implements ItemService {
     private final RequestRepository requestRepository;
 
     @Override
-    public List<ItemDtoWithDate> findItemByUserId(Long userId) {
+    public List<ItemDtoWithDate> findItemByUserId(Long userId,Integer from, Integer size) {
         if (userId == null) {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
-        return itemRepository.findByOwnerIdOrderByIdAsc(userId)
+        Pageable pageable = PageRequest.of(from, size);
+        return itemRepository.findByOwnerIdOrderByIdAsc(userId,pageable)
                 .stream()
                 .map(this::setCommenstsToItem)
                 .map(this::setBookingToItem)
@@ -139,7 +143,7 @@ public class ItemServiceImpl implements ItemService {
         checkItem(ItemMapper.inItemDtoWithoutUser(itemDto));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Item item = ItemMapper.inItemDto(itemDto, user);
+        Item item = ItemMapper.inItemDto(itemDto,user);
         if (itemDto.getRequestId()!=null) {
             ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос не найден"));
@@ -176,9 +180,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItem(String text) {
+    public List<ItemDto> searchItem(String text, Integer from, Integer size) {
         String query = text.toLowerCase();
-        return itemRepository.search(query)
+        Pageable pageable = PageRequest.of(from, size);
+        return itemRepository.search(query,pageable)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(toList());

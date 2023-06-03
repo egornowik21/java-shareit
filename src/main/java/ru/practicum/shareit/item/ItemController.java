@@ -28,9 +28,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDtoWithDate> findItemByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDtoWithDate> findItemByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                  @RequestParam(defaultValue = "0") Integer from,
+                                                  @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/items - получен список всех вещей по ID пользователя - {}.", userId);
-        return itemService.findItemByUserId(userId);
+        return itemService.findItemByUserId(userId, from, size);
     }
 
     @PostMapping
@@ -58,12 +60,14 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam String text, @RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDto> searchItem(@RequestParam String text, @RequestHeader("X-Sharer-User-Id") Long userId,
+                                    @RequestParam(defaultValue = "0") Integer from,
+                                    @RequestParam(defaultValue = "10") Integer size) {
         if (text == null || text.isEmpty() || text.isBlank()) {
             return Collections.EMPTY_LIST;
         }
         log.info("GET/items - выполнен поиск вещи.");
-        return itemService.searchItem(text);
+        return itemService.searchItem(text, from, size);
     }
 
 }

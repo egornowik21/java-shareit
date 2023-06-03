@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ItemService {
 
-    List<ItemDtoWithDate> findItemByUserId(Long userId);
+    List<ItemDtoWithDate> findItemByUserId(Long userId,Integer from, Integer size);
 
     ItemDtoWithDate getItemById(Long itemId, Long userId);
 
@@ -20,7 +20,7 @@ public interface ItemService {
 
     ItemDto patchItem(Long userId, Item item, Long itemId);
 
-    List<ItemDto> searchItem(String text);
+    List<ItemDto> searchItem(String text, Integer from, Integer size);
 
     CommentDto postCommentByItem(@Valid Long userId, @Valid CommentDto commentDto, Long itemId);
 }

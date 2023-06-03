@@ -9,6 +9,6 @@ import java.util.List;
 public interface RequestService {
     ItemRequestDto postRequestByUser(@Valid Long userId, @Valid ItemRequestDto itemRequestDto);
     List<ItemRequestDtoInput> getAllRequests(Long userId, Integer from, Integer size);
-    ItemRequestDto getRequestById(Long itemId, Long userId);
+    ItemRequestDtoInput getRequestById(Long itemId, Long userId);
     public List<ItemRequestDtoInput> getAllRequestsByUser(Long userId);
 }

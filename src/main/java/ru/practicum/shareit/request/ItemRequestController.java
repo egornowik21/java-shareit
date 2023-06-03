@@ -8,6 +8,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoInput;
 import ru.practicum.shareit.request.service.RequestService;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -35,14 +36,17 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public List<ItemRequestDtoInput> findAllRequestsByOtherUsers(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                            @RequestParam(value = "from", required = false) Integer from,
-                                                            @RequestParam(value = "size", required = false) Integer size) {
+                                                                 @RequestParam(value = "from", required = false) Integer from,
+                                                                 @RequestParam(value = "size", required = false) Integer size) {
+        if (from == null || size == null) {
+            return Collections.emptyList();
+        }
         log.info("GET/requests - получен список всех запросов от пользователя с ID - {}.", userId);
         return requestService.getAllRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestDto getRequestById(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemRequestDtoInput getRequestById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                          @PathVariable Long requestId) {
         log.info("GET/request - получен запрос по ID - {}.", requestId);
         return requestService.getRequestById(requestId, userId);

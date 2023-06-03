@@ -4,8 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
@@ -19,6 +18,6 @@ public class ItemRequestDtoInput {
     @NotBlank
     String description;
     Long requestorId;
-    List<Item> items;
+    List<ItemDto> items;
     LocalDateTime created;
 }
