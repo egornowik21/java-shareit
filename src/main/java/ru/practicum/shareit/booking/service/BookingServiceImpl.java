@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -104,13 +106,14 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    public List<BookingDto> getAllBokingsByUser(String state, Long userId) {
+    public List<BookingDto> getAllBokingsByUser(String state, Long userId, Integer from, Integer size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Booking> bookingByState = new ArrayList<>();
+        Pageable pageable = PageRequest.of(from/size, size,Sort.by(DESC, "start"));
         switch (state) {
             case "ALL":
-                bookingByState = bookingRepository.findByBooker_Id(userId, Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByBooker_Id(userId, pageable);
                 break;
             case "WAITING":
                 bookingByState = bookingRepository.findByBooker_Id(userId).stream()
@@ -119,13 +122,13 @@ public class BookingServiceImpl implements BookingService {
                         .collect(Collectors.toList());
                 break;
             case "CURRENT":
-                bookingByState = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(), LocalDateTime.now(), pageable);
                 break;
             case "FUTURE":
-                bookingByState = bookingRepository.findByBooker_IdAndStartIsAfter(userId, LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByBooker_IdAndStartIsAfter(userId, LocalDateTime.now(), pageable);
                 break;
             case "PAST":
-                bookingByState = bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByBooker_IdAndEndIsBefore(userId, LocalDateTime.now(), pageable);
                 break;
             case "REJECTED":
                 bookingByState = bookingRepository.findByBooker_Id(user.getId()).stream()
@@ -141,13 +144,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    public List<BookingDto> getAllBokingsByOwner(String state, Long userId) {
+    public List<BookingDto> getAllBokingsByOwner(String state, Long userId,Integer from, Integer size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Booking> bookingByState = new ArrayList<>();
+        Pageable pageable = PageRequest.of(from, size,Sort.by(DESC, "start"));
         switch (state) {
             case "ALL":
-                bookingByState = bookingRepository.findByItem_Owner_Id(user.getId(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByItem_Owner_Id(user.getId(), pageable);
                 break;
             case "WAITING":
                 bookingByState = bookingRepository.findByItem_Owner_Id(user.getId()).stream()
@@ -156,13 +160,13 @@ public class BookingServiceImpl implements BookingService {
                         .collect(Collectors.toList());
                 break;
             case "CURRENT":
-                bookingByState = bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(user.getId(), LocalDateTime.now(), LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(user.getId(), LocalDateTime.now(), LocalDateTime.now(), pageable);
                 break;
             case "FUTURE":
-                bookingByState = bookingRepository.findByItem_Owner_IdAndStartIsAfter(user.getId(), LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByItem_Owner_IdAndStartIsAfter(user.getId(), LocalDateTime.now(), pageable);
                 break;
             case "PAST":
-                bookingByState = bookingRepository.findByItem_Owner_IdAndEndIsBefore(user.getId(), LocalDateTime.now(), Sort.by(DESC, "start"));
+                bookingByState = bookingRepository.findByItem_Owner_IdAndEndIsBefore(user.getId(), LocalDateTime.now(), pageable);
                 break;
             case "REJECTED":
                 bookingByState = bookingRepository.findByItem_Owner_Id(user.getId()).stream()

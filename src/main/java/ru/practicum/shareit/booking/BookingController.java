@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.ValidationException;
 
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -41,24 +43,34 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingDto> getAllBookingsByUserID(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                   @RequestParam(defaultValue = "ALL") String state) {
+    public List<BookingDto> getAllBookingsByUserID(@Validated @RequestHeader("X-Sharer-User-Id") Long userId,
+                                                   @RequestParam(defaultValue = "ALL") String state,
+                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                   @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/bookings - получено бронирование для пользователя по ID - {}.", userId);
         State status = State.fromString(state);
         if (status == null) {
             throw new ValidationException("Unknown state: " + state);
         }
-        return bookingService.getAllBokingsByUser(state, userId);
+        if (from<0||size<0) {
+            throw new ValidationException("Введены отрицательные значения");
+        }
+        return bookingService.getAllBokingsByUser(state, userId, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingDto> getAllBookingsByOwnerID(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                    @RequestParam(defaultValue = "ALL") String state) {
+    public List<BookingDto> getAllBookingsByOwnerID(@Validated @RequestHeader("X-Sharer-User-Id") Long userId,
+                                                    @RequestParam(defaultValue = "ALL") String state,
+                                                    @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                    @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/bookings - получено бронирование для владельца по ID - {}.", userId);
         State status = State.fromString(state);
         if (status == null) {
             throw new ValidationException("Unknown state: " + state);
         }
-        return bookingService.getAllBokingsByOwner(status.toString(), userId);
+        if (from<0||size<0) {
+            throw new ValidationException("Введены отрицательные значения");
+        }
+        return bookingService.getAllBokingsByOwner(status.toString(), userId, from, size);
     }
 }
