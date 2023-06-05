@@ -3,12 +3,15 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,12 +44,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto create(UserDto userDto) {
+    @Transactional(readOnly = true)
+    public UserDto create(@Valid UserDto userDto) {
         User newUser = repository.save(UserMapper.inUserDto(userDto));
         return UserMapper.toUserDto(newUser);
     }
-
     @Override
+    @Transactional(readOnly = true)
     public UserDto patch(Long id, UserDto userDto) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
