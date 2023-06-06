@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,7 +76,7 @@ public class UserServiceTest {
         List<UserDto> usersList = userService.findAll();
         userService.deleteUserById(userDto.getId());
         List<UserDto> usersListAfterDelete = userService.findAll();
-        assertEquals(usersList.size(),usersListAfterDelete.size()+1);
+        assertEquals(usersList.size(), usersListAfterDelete.size() + 1);
     }
 
     @Test
@@ -85,7 +84,7 @@ public class UserServiceTest {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
         UserDto userDtoById = userService.getUserById(userDto.getId());
-        assertEquals(user.getId(),userDtoById.getId());
+        assertEquals(user.getId(), userDtoById.getId());
     }
 
     @Test
