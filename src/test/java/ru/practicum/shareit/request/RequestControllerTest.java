@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemRequestController.class)
@@ -97,14 +98,14 @@ public class RequestControllerTest {
         when(requestService.getAllRequests(anyLong(), anyInt(), anyInt()))
                 .thenReturn(List.of(itemRequestDtoinput));
 
-        mockMvc.perform(get("/requests/all")
+        mockMvc.perform(get("/requests/all?from=0&size=20")
                         .content(objectMapper.writeValueAsString(itemRequestDtoinput))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", user.getId()))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)));
     }
 
 
