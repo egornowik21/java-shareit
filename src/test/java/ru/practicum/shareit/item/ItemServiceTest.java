@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDate;
@@ -41,8 +43,11 @@ public class ItemServiceTest {
     @Autowired
     ItemService itemService;
 
+    @Autowired
+    BookingService bookingService;
+
     private final User user = new User(null, "user", "user@yandex.ru");
-    private final User user2 = new User(null,"user2","user2@yandex.ru");
+    private final User user2 = new User(null, "user2", "user2@yandex.ru");
     private final ItemRequest itemRequest = new ItemRequest(1L, "test", user, LocalDateTime.now());
     private final ItemRequestDtoInput itemRequestDtoinput = ItemRequestMapper.toItemRequestDtoInput(itemRequest);
     private final ItemRequestDto itemRequestDto = ItemRequestMapper.toRequestDto(itemRequest);
@@ -56,7 +61,7 @@ public class ItemServiceTest {
     void create() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
 
         assertEquals(item.getName(), itemDto.getName());
         assertEquals(item.getDescription(), itemDto.getDescription());
@@ -67,12 +72,12 @@ public class ItemServiceTest {
     void FaildCreateItem() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setRequestId(itemRequest.getId());
         assertEquals(item.getName(), itemDto.getName());
         assertEquals(item.getDescription(), itemDto.getDescription());
         assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
-        assertThrows(NotFoundException.class,()->itemService.postItemByUser(user.getId(),itemDto));
+        assertThrows(NotFoundException.class, () -> itemService.postItemByUser(user.getId(), itemDto));
     }
 
 
@@ -80,9 +85,9 @@ public class ItemServiceTest {
     void getAllItemsByUser() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
-        List<ItemDtoWithDate> requestsList = itemService.findItemByUserId(userDto.getId(),0,10);
+        List<ItemDtoWithDate> requestsList = itemService.findItemByUserId(userDto.getId(), 0, 10);
         assertEquals(requestsList.size(), 1);
     }
 
@@ -90,15 +95,16 @@ public class ItemServiceTest {
     void getAllItemsWithWrongIdByUser() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
-        assertThrows(NotFoundException.class,()->itemService.findItemByUserId(user2.getId(),0,10));
+        assertThrows(NotFoundException.class, () -> itemService.findItemByUserId(user2.getId(), 0, 10));
     }
+
     @Test
     void getAllItems() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
         List<ItemDto> requestsList = itemService.getAllItems();
         assertEquals(requestsList.size(), 1);
@@ -108,20 +114,21 @@ public class ItemServiceTest {
     void getItemById() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
         ItemDtoWithDate reusultItem = itemService.getItemById(itemDto.getId(), userDto.getId());
-        assertEquals(item.getName(),reusultItem.getName());
+        assertEquals(item.getName(), reusultItem.getName());
         assertEquals(item.getDescription(), itemDto.getDescription());
         assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
     }
+
     @Test
     void searchItem() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
-        List<ItemDto> reusultItemList = itemService.searchItem(itemDto.getName(),0,10);
+        List<ItemDto> reusultItemList = itemService.searchItem(itemDto.getName(), 0, 10);
         assertEquals(reusultItemList.size(), 1);
     }
 
@@ -129,14 +136,42 @@ public class ItemServiceTest {
     void patchItem() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(),ItemMapper.toItemDto(item));
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         itemDto.setId(itemDto.getId());
-        ItemDto reusultItem = itemService.patchItem(userDto.getId(),item,itemDto.getId());
+        ItemDto reusultItem = itemService.patchItem(userDto.getId(), item, itemDto.getId());
         assertEquals(item.getName(), reusultItem.getName());
         assertEquals(item.getDescription(), reusultItem.getDescription());
         assertEquals(item.getOwner().getId(), reusultItem.getOwnerId());
     }
 
+    @Test
+    void postFaildComment() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
+        item.setId(itemDto.getId());
+
+        User author = new User(null, "author", "author@yandex.ru");
+        UserDto authorDto = userService.create(UserMapper.toUserDto(author));
+        author.setId(authorDto.getId());
+
+        assertThrows(NotFoundException.class, () -> itemService.postCommentByItem(item.getId(),
+                CommentMapper.toCommentDto(comment), author.getId()));
+
+    }
+
+    @Test
+    void postFaildCommentWithouBooking() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
+        User author = new User(null, "author", "author@yandex.ru");
+        UserDto authorDto = userService.create(UserMapper.toUserDto(author));
+        author.setId(authorDto.getId());
+        assertThrows(ValidationException.class, () -> itemService.postCommentByItem(userDto.getId(), commentDto, itemDto.getId()));
+
+    }
 
 
 }

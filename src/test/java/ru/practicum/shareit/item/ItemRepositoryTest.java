@@ -1,6 +1,5 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.item;
 
-import org.apache.coyote.Request;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dao.UserRepository;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-public class RequestRepositoryTest {
+public class ItemRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
@@ -27,23 +28,29 @@ public class RequestRepositoryTest {
     private RequestRepository requestRepository;
     @Autowired
     private UserRepository userRepository;
-
-
+    @Autowired
+    private ItemRepository itemRepository;
 
     @Test
-    void testfindByRequestorIdNot() {
+    void testsearchItem() {
         User user = new User();
-        user.setEmail("demo-user4@email.com");
-        user.setName("name4");
+        user.setEmail("demo-user2@email.com");
+        user.setName("name2");
         ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setDescription("demodesk4");
+        itemRequest.setDescription("demodesk2");
         itemRequest.setCreated(LocalDateTime.now());
         itemRequest.setRequestor(user);
-
-        Assertions.assertNull(itemRequest.getId());
+        Item item = new Item();
+        item.setRequest(itemRequest);
+        item.setName("item");
+        item.setDescription("test");
+        item.setAvailable(Boolean.TRUE);
+        item.setOwner(user);
+        Assertions.assertNotNull(item.getId());
         userRepository.save(user);
         requestRepository.save(itemRequest);
-        List<ItemRequest> returnList = requestRepository.findByRequestor_IdNot(user.getId(), Pageable.unpaged()).toList();
+        itemRepository.save(item);
+        List<Item> returnList =itemRepository.search("item",Pageable.unpaged()).toList();
         Assertions.assertNotNull(returnList.size());
     }
 }
