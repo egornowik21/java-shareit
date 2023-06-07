@@ -27,7 +27,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemRequestController.class)
@@ -40,8 +39,10 @@ public class RequestControllerTest {
     private ObjectMapper objectMapper;
     private final User user = new User(1L, "user", "user@yandex.ru");
     private final ItemRequest itemRequest = new ItemRequest(1L, "test", user, LocalDateTime.now());
+    private final ItemRequest itemRequest2 = new ItemRequest(1L, null, user, LocalDateTime.now());
     private final ItemRequestDtoInput itemRequestDtoinput = ItemRequestMapper.toItemRequestDtoInput(itemRequest);
     private final ItemRequestDto itemRequestDto = ItemRequestMapper.toRequestDto(itemRequest);
+    private final ItemRequestDto itemRequestDto2 = ItemRequestMapper.toRequestDto(itemRequest2);
     private final UserDto userDto = UserMapper.toUserDto(user);
 
     @Test
@@ -58,6 +59,20 @@ public class RequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(itemRequest.getId()), Long.class))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description", Matchers.is(itemRequest.getDescription())));
+    }
+
+    @Test
+    void createFaildRequestTest() throws Exception {
+        when(requestService.postRequestByUser(anyLong(), any()))
+                .thenReturn(itemRequestDto2);
+
+        mockMvc.perform(post("/requests")
+                        .content(objectMapper.writeValueAsString(itemRequestDto2))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", user.getId()))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -106,6 +121,20 @@ public class RequestControllerTest {
                         .header("X-Sharer-User-Id", user.getId()))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    void getFaildAllRequestsTest() throws Exception {
+        when(requestService.getAllRequests(anyLong(), anyInt(), anyInt()))
+                .thenReturn(List.of(itemRequestDtoinput));
+
+        mockMvc.perform(get("/requests/all?from=&size=")
+                        .content(objectMapper.writeValueAsString(itemRequestDtoinput))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", user.getId()))
+                .andExpect(status().isOk());
     }
 
 

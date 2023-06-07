@@ -36,9 +36,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(Long userId) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (repository.findById(userId).isEmpty()) {
-            log.error("Пользователь с id - {} не существует", userId);
-        }
+
         return UserMapper.toUserDto(user);
     }
 
