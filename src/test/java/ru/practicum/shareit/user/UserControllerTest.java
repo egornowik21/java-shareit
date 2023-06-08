@@ -88,9 +88,9 @@ public class UserControllerTest {
 
     @Test
     void updateUser() throws Exception {
-        when(userService.patch(anyLong(),any()))
+        when(userService.patch(anyLong(), any()))
                 .thenReturn(userDto);
-        mockMvc.perform(patch("/users/"+userDto.getId())
+        mockMvc.perform(patch("/users/" + userDto.getId())
                         .content(objectMapper.writeValueAsString(userDto))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)

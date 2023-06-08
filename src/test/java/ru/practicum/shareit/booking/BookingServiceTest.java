@@ -193,8 +193,8 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.WAITING.toString(),user2.getId(),0,25);
-        assertEquals(1,returnList.size());
+        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.WAITING.toString(), user2.getId(), 0, 25);
+        assertEquals(1, returnList.size());
     }
 
     @Test
@@ -207,9 +207,10 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.REJECTED.toString(),user2.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.REJECTED.toString(), user2.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
+
     @Test
     void getFutureBookingsByUserTest() {
         Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
@@ -220,8 +221,8 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser("FUTURE",user2.getId(),0,25);
-        assertEquals(1,returnList.size());
+        List<BookingDto> returnList = bookingService.getAllBokingsByUser("FUTURE", user2.getId(), 0, 25);
+        assertEquals(1, returnList.size());
     }
 
     @Test
@@ -234,7 +235,7 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.PAST.toString(),user2.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.PAST.toString(), user2.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
 
@@ -248,7 +249,7 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.CURRENT.toString(),user2.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.CURRENT.toString(), user2.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
 
@@ -275,8 +276,8 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.WAITING.toString(),user.getId(),0,25);
-        assertEquals(1,returnList.size());
+        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.WAITING.toString(), user.getId(), 0, 25);
+        assertEquals(1, returnList.size());
     }
 
     @Test
@@ -289,9 +290,10 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.REJECTED.toString(),user.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.REJECTED.toString(), user.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
+
     @Test
     void getFutureBookingsByOwnerTest() {
         Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
@@ -302,8 +304,8 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.FUTURE.toString(),user.getId(),0,25);
-        assertEquals(1,returnList.size());
+        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.FUTURE.toString(), user.getId(), 0, 25);
+        assertEquals(1, returnList.size());
     }
 
     @Test
@@ -316,7 +318,7 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.PAST.toString(),user.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.PAST.toString(), user.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
 
@@ -330,7 +332,7 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.CURRENT.toString(),user.getId(),0,25);
+        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.CURRENT.toString(), user.getId(), 0, 25);
         assertNotNull(returnList.size());
     }
 
@@ -358,7 +360,7 @@ public class BookingServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         item.setId(itemDto.getId());
         BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        assertThrows(NotFoundException.class,()-> bookingService.getBookingById(bookingDto.getId(), 5L));
+        assertThrows(NotFoundException.class, () -> bookingService.getBookingById(bookingDto.getId(), 5L));
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.exception.InvalidEmailException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -78,6 +79,14 @@ public class ItemServiceTest {
         assertEquals(item.getDescription(), itemDto.getDescription());
         assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
         assertThrows(NotFoundException.class, () -> itemService.postItemByUser(user.getId(), itemDto));
+    }
+
+    @Test
+    void FaildCreateItemWithNullName() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        Item item2 = new Item(1L, null, "deskitem", Boolean.TRUE, user, null);
+        assertThrows(InvalidEmailException.class, () -> itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item2)));
     }
 
 
@@ -168,6 +177,11 @@ public class ItemServiceTest {
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
         User author = new User(null, "author", "author@yandex.ru");
         UserDto authorDto = userService.create(UserMapper.toUserDto(author));
+        comment.setItem(item);
+        comment.getItem();
+        Comment comment1 = new Comment(1L, "txt", user, item, LocalDateTime.now());
+        CommentDto commentDto1 = CommentMapper.toCommentDto(comment1);
+        Comment comment2 = CommentMapper.inCommentDto(commentDto1, item, user2);
         author.setId(authorDto.getId());
         assertThrows(ValidationException.class, () -> itemService.postCommentByItem(userDto.getId(), commentDto, itemDto.getId()));
 

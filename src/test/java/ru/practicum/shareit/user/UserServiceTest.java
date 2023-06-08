@@ -86,6 +86,7 @@ public class UserServiceTest {
         UserDto userDtoById = userService.getUserById(userDto.getId());
         assertEquals(user.getId(), userDtoById.getId());
     }
+
     @Test
     void deleteWrongUserTest() {
         assertThrows(NotFoundException.class, () -> userService.deleteUserById(1L));

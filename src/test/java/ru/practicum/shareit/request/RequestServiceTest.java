@@ -19,7 +19,8 @@ import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 @SpringBootTest
@@ -56,18 +57,19 @@ public class RequestServiceTest {
     void getAllRequests() {
         UserDto userDtoNotOwner = userService.create(UserMapper.toUserDto(user2));
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        requestService.postRequestByUser(userDto.getId(),itemRequestDto);
-        List<ItemRequestDtoInput> requestsList = requestService.getAllRequests(userDtoNotOwner.getId(),0,10);
+        requestService.postRequestByUser(userDto.getId(), itemRequestDto);
+        List<ItemRequestDtoInput> requestsList = requestService.getAllRequests(userDtoNotOwner.getId(), 0, 10);
         assertEquals(requestsList.size(), 1);
     }
 
     @Test
     void getRequestById() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        ItemRequestDto testRequest = requestService.postRequestByUser(userDto.getId(),itemRequestDto);
+        ItemRequestDto testRequest = requestService.postRequestByUser(userDto.getId(), itemRequestDto);
         ItemRequestDtoInput itemRequestDtoInput = requestService.getRequestById(testRequest.getId(), userDto.getId());
         assertEquals(testRequest.getId(), itemRequestDtoInput.getId());
     }
+
     @Test
     void getRequestByWrongUserIdTest() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));

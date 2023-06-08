@@ -42,13 +42,11 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    @Transactional(readOnly = true)
     public UserDto create(@Valid UserDto userDto) {
         User newUser = repository.save(UserMapper.inUserDto(userDto));
         return UserMapper.toUserDto(newUser);
     }
     @Override
-    @Transactional(readOnly = true)
     public UserDto patch(Long id, UserDto userDto) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

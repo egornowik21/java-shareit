@@ -50,7 +50,7 @@ public class ItemRepositoryTest {
         userRepository.save(user);
         requestRepository.save(itemRequest);
         itemRepository.save(item);
-        List<Item> returnList =itemRepository.search("item",Pageable.unpaged()).toList();
+        List<Item> returnList = itemRepository.search("item", Pageable.unpaged()).toList();
         Assertions.assertNotNull(returnList.size());
     }
 }
