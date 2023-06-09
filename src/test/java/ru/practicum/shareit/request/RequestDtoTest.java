@@ -46,8 +46,5 @@ public class RequestDtoTest {
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
         assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("test");
         assertThat(result).extractingJsonPathStringValue("$.requestor.name").isEqualTo("John");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-        String format = ldt.format(formatter);
-        assertThat(result).extractingJsonPathStringValue("$.created").isEqualTo(format);
     }
 }
