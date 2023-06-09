@@ -28,7 +28,7 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto patchItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public BookingDto patchBooking(@RequestHeader("X-Sharer-User-Id") Long userId,
                                 @RequestParam(value = "approved") boolean approved,
                                 @PathVariable("bookingId") Long bookingId) {
         log.info("PATCH/bookings - бронирование обновлено для ID пользователя - {}.", userId);

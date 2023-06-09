@@ -66,8 +66,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoWithDate getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
         ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
         List<CommentDto> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .map(CommentMapper::toCommentDto)
@@ -111,8 +110,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto patchItem(Long userId, Item item, Long itemId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
         Item itemToUpdate = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
         String name = item.getName();
@@ -139,10 +137,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto postItemByUser(@Valid Long userId, @Valid ItemDto itemDto) {
+    public ItemDto postItemByUser(Long userId, ItemDto itemDto) {
         checkItem(ItemMapper.inItemDtoWithoutUser(itemDto));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
         Item item = ItemMapper.inItemDto(itemDto,user);
         if (itemDto.getRequestId()!=null) {
             ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
@@ -153,14 +150,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public CommentDto postCommentByItem(@Valid Long userId, @Valid CommentDto commentDto, Long itemId) {
+    public CommentDto postCommentByItem(Long userId, CommentDto commentDto, Long itemId) {
         if (commentDto.getText().isBlank() || commentDto.getText().isEmpty()) {
             throw new ValidationException("Текст комментария пустой");
         }
+        User user = getUserById(userId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Comment> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .filter(comment -> comment.getAuthor().getId().equals(user.getId()))
                 .collect(toList());
@@ -232,5 +228,10 @@ public class ItemServiceImpl implements ItemService {
             itemDtoWithDate.setNextBooking(nextBooking);
         }
         return itemDtoWithDate;
+    }
+    private User getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        return user;
     }
 }

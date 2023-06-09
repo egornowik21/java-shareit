@@ -23,6 +23,7 @@ public class ItemDtoTest {
     private JacksonTester<ItemDto> json;
     private Item item;
     private User user;
+    private Item item2;
     private ItemRequest itemRequest;
     private final LocalDateTime ldt = LocalDateTime.now();
 
@@ -45,6 +46,14 @@ public class ItemDtoTest {
                 TRUE,
                 user,
                 itemRequest);
+        item2 = new Item(
+                1L,
+                "",
+                "",
+                null,
+                user,
+                itemRequest
+        );
     }
 
     @Test
@@ -56,6 +65,19 @@ public class ItemDtoTest {
         assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo("name");
         assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("test");
         assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(TRUE);
+        assertThat(result).extractingJsonPathNumberValue("$.ownerId").isEqualTo(1);
+        assertThat(result).extractingJsonPathNumberValue("$.requestId").isEqualTo(1);
+    }
+
+    @Test
+    void testNullAvailableItemDto() throws Exception {
+        ItemDto itemDto2 = ItemMapper.toItemDto(item2);
+        JsonContent<ItemDto> result = json.write(itemDto2);
+
+        assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
+        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo("");
+        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("");
+        assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(null);
         assertThat(result).extractingJsonPathNumberValue("$.ownerId").isEqualTo(1);
         assertThat(result).extractingJsonPathNumberValue("$.requestId").isEqualTo(1);
     }

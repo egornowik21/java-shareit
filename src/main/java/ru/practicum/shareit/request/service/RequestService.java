@@ -7,7 +7,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 public interface RequestService {
-    ItemRequestDto postRequestByUser(@Valid Long userId, @Valid ItemRequestDto itemRequestDto);
+    ItemRequestDto postRequestByUser(Long userId, ItemRequestDto itemRequestDto);
 
     List<ItemRequestDtoInput> getAllRequests(Long userId, Integer from, Integer size);
 

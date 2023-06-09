@@ -19,7 +19,6 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,21 +34,18 @@ public class RequestServiceImpl implements RequestService {
     private final ItemRepository itemRepository;
 
     @Override
-    public ItemRequestDto postRequestByUser(@Valid Long userId, @Valid ItemRequestDto itemRequestDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        ItemRequest itemRequest = ItemRequestMapper.inRequestDto(itemRequestDto, user);
+    public ItemRequestDto postRequestByUser(Long userId, ItemRequestDto itemRequestDto) {
+        ItemRequest itemRequest = ItemRequestMapper.inRequestDto(itemRequestDto, getUserById(userId));
         itemRequest.setCreated(LocalDateTime.now());
         return ItemRequestMapper.toRequestDto(requestRepository.save(itemRequest));
     }
 
     @Override
     public List<ItemRequestDtoInput> getAllRequests(Long userId, Integer from, Integer size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        getUserById(userId);
         Pageable pageable = PageRequest.of(from, size, Sort.by("created"));
         List<Item> items = itemRepository.findAll();
-        List<ItemRequestDtoInput> itemRequestDto = requestRepository.findByRequestor_IdNot(userId,pageable)
+        List<ItemRequestDtoInput> itemRequestDto = requestRepository.findByRequestor_IdNot(userId, pageable)
                 .stream()
                 .map(ItemRequestMapper::toItemRequestDtoInput)
                 .collect(Collectors.toList());
@@ -58,10 +54,9 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<ItemRequestDtoInput> getAllRequestsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        getUserById(userId);
         List<Item> items = itemRepository.findAll();
-        List<ItemRequestDtoInput> itemRequestDto = requestRepository.findByRequestorIdOrderByIdAsc(user.getId())
+        List<ItemRequestDtoInput> itemRequestDto = requestRepository.findByRequestorIdOrderByIdAsc(getUserById(userId).getId())
                 .stream()
                 .map(ItemRequestMapper::toItemRequestDtoInput)
                 .collect(Collectors.toList());
@@ -70,8 +65,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDtoInput getRequestById(Long requestId, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        getUserById(userId);
         ItemRequest itemRequest = requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос не найден"));
         List<ItemDto> itemsListIds = itemRepository.findByRequestIdOrderByIdAsc(requestId)
@@ -96,5 +90,11 @@ public class RequestServiceImpl implements RequestService {
             }
         }
         return requestDtos;
+    }
+
+    private User getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        return user;
     }
 }

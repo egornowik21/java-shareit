@@ -23,8 +23,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.practicum.shareit.booking.model.Status.WAITING;
 
@@ -102,5 +101,18 @@ public class BookingControllerTest {
                 .andExpect(status().isOk());
         Mockito.verify(bookingService, Mockito.times(1))
                 .getAllBokingsByOwner(anyString(), anyLong(), anyInt(), anyInt());
+    }
+
+    @Test
+    void patchBookingTest() throws Exception {
+        when(bookingService.patchBookingByUser(anyLong(), anyLong(),any())).thenReturn(bookingDto);
+
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingDto.getId(),Boolean.TRUE)
+                        .content(objectMapper.writeValueAsString(bookingDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", user2.getId()))
+                .andExpect(status().isBadRequest());
     }
 }

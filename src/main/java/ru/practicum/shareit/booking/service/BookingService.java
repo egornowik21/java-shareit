@@ -7,9 +7,9 @@ import javax.validation.Valid;
 import java.util.List;
 
 public interface BookingService {
-    BookingDto postBookingByUser(@Valid Long userId, @Valid BookingDtoInput bookingDtoInput);
+    BookingDto postBookingByUser(Long userId,BookingDtoInput bookingDtoInput);
 
-    BookingDto patchBookingByUser(@Valid Long userId, Long bookingId, Boolean approved);
+    BookingDto patchBookingByUser(Long userId, Long bookingId, Boolean approved);
 
     BookingDto getBookingById(Long bookingId, Long userId);
 

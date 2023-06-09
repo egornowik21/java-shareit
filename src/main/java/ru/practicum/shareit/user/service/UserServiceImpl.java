@@ -3,8 +3,6 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -42,24 +40,23 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto create(@Valid UserDto userDto) {
+    public UserDto create(UserDto userDto) {
         User newUser = repository.save(UserMapper.inUserDto(userDto));
         return UserMapper.toUserDto(newUser);
     }
+
     @Override
     public UserDto patch(Long id, UserDto userDto) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (userDto.getEmail()==null || userDto.getEmail().isBlank()) {
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
             user.setEmail(user.getEmail());
-        }
-        else {
+        } else {
             user.setEmail(userDto.getEmail());
         }
-        if (userDto.getName()==null || userDto.getName().isBlank()) {
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
             user.setName(user.getName());
-        }
-        else {
+        } else {
             user.setName(userDto.getName());
         }
         repository.save(user);

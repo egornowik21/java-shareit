@@ -22,5 +22,5 @@ public interface ItemService {
 
     List<ItemDto> searchItem(String text, Integer from, Integer size);
 
-    CommentDto postCommentByItem(@Valid Long userId, @Valid CommentDto commentDto, Long itemId);
+    CommentDto postCommentByItem(Long userId, CommentDto commentDto, Long itemId);
 }
