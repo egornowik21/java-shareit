@@ -9,6 +9,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,9 +34,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(Long userId) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (repository.findById(userId).isEmpty()) {
-            log.error("Пользователь с id - {} не существует", userId);
-        }
+
         return UserMapper.toUserDto(user);
     }
 
@@ -50,16 +49,14 @@ public class UserServiceImpl implements UserService {
     public UserDto patch(Long id, UserDto userDto) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (userDto.getEmail()==null || userDto.getEmail().isBlank()) {
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
             user.setEmail(user.getEmail());
-        }
-        else {
+        } else {
             user.setEmail(userDto.getEmail());
         }
-        if (userDto.getName()==null || userDto.getName().isBlank()) {
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
             user.setName(user.getName());
-        }
-        else {
+        } else {
             user.setName(userDto.getName());
         }
         repository.save(user);

@@ -26,16 +26,4 @@ public class ErrorHandler {
     }
 
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleOtherErrorsException(final DublicateExeption e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse invalideStateEsception(final InvalidStateException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
 }

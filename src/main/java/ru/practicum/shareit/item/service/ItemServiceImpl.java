@@ -2,6 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
@@ -20,6 +23,8 @@ import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.dao.RequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
@@ -40,16 +45,17 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
-
     private final CommentRepository commentRepository;
+    private final RequestRepository requestRepository;
 
     @Override
-    public List<ItemDtoWithDate> findItemByUserId(Long userId) {
+    public List<ItemDtoWithDate> findItemByUserId(Long userId,Integer from, Integer size) {
         if (userId == null) {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
-        return itemRepository.findByOwnerIdOrderByIdAsc(userId)
+        Pageable pageable = PageRequest.of(from, size);
+        return itemRepository.findByOwnerIdOrderByIdAsc(userId,pageable)
                 .stream()
                 .map(this::setCommenstsToItem)
                 .map(this::setBookingToItem)
@@ -60,8 +66,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoWithDate getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
         ItemDtoWithDate itemDtoWithDate = ItemMapper.toItemDtoWithDate(item);
         List<CommentDto> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .map(CommentMapper::toCommentDto)
@@ -105,8 +110,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto patchItem(Long userId, Item item, Long itemId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User user = getUserById(userId);
         Item itemToUpdate = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
         String name = item.getName();
@@ -133,23 +137,26 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto postItemByUser(@Valid Long userId, @Valid ItemDto itemDto) {
+    public ItemDto postItemByUser(Long userId, ItemDto itemDto) {
         checkItem(ItemMapper.inItemDtoWithoutUser(itemDto));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Item item = ItemMapper.inItemDto(itemDto, user);
+        User user = getUserById(userId);
+        Item item = ItemMapper.inItemDto(itemDto,user);
+        if (itemDto.getRequestId()!=null) {
+            ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос не найден"));
+            item.setRequest(itemRequest);
+        }
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
-    public CommentDto postCommentByItem(@Valid Long userId, @Valid CommentDto commentDto, Long itemId) {
+    public CommentDto postCommentByItem(Long userId, CommentDto commentDto, Long itemId) {
         if (commentDto.getText().isBlank() || commentDto.getText().isEmpty()) {
             throw new ValidationException("Текст комментария пустой");
         }
+        User user = getUserById(userId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         List<Comment> commentByUser = commentRepository.findByItem_id(itemId).stream()
                 .filter(comment -> comment.getAuthor().getId().equals(user.getId()))
                 .collect(toList());
@@ -164,13 +171,15 @@ public class ItemServiceImpl implements ItemService {
             throw new ValidationException("Бронирование не найдено");
         }
         Comment comment = CommentMapper.inCommentDto(commentDto, item, user);
+        comment.setCreated(LocalDateTime.now());
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 
     @Override
-    public List<ItemDto> searchItem(String text) {
+    public List<ItemDto> searchItem(String text, Integer from, Integer size) {
         String query = text.toLowerCase();
-        return itemRepository.search(query)
+        Pageable pageable = PageRequest.of(from, size);
+        return itemRepository.search(query,pageable)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(toList());
@@ -219,5 +228,10 @@ public class ItemServiceImpl implements ItemService {
             itemDtoWithDate.setNextBooking(nextBooking);
         }
         return itemDtoWithDate;
+    }
+    private User getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        return user;
     }
 }
