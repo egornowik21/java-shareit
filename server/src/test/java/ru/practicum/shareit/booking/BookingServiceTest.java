@@ -1,366 +1,388 @@
 package ru.practicum.shareit.booking;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.State;
-import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.booking.service.BookingServiceImpl;
+import ru.practicum.shareit.booking.service.BookingState;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.service.RequestService;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@Transactional
-@SpringBootTest
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@ExtendWith(MockitoExtension.class)
 public class BookingServiceTest {
-    private final User user = new User(null, "user", "user@yandex.ru");
-    private final User user2 = new User(null, "user2", "user2@yandex.ru");
-    private final ItemRequest itemRequest = new ItemRequest(null, "test", user, LocalDateTime.now());
-    private final Item item = new Item(1L, "item", "deskitem", Boolean.TRUE, user, null);
-    private final Comment comment = new Comment(1L, "comment", user, item, LocalDateTime.now());
-    private final Booking booking = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
-    @Autowired
-    RequestService requestService;
-    @Autowired
-    UserService userService;
-    @Autowired
-    ItemService itemService;
-    @Autowired
-    BookingService bookingService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ItemRepository itemRepository;
+    @InjectMocks
+    private BookingServiceImpl bookingService;
+    @Mock
+    private BookingRepository bookingRepository;
+    private User user;
+    private Item item;
+    private User owner;
+    private Booking booking;
+    private BookingDto bookingDto;
+    private BookingShortDto bookingShortDto;
+
+    @BeforeEach
+    public void beforeEach() {
+        user = new User(1L, "Ivanov", "ivanov@mail.ru");
+        owner = new User(2L, "Petrov", "petrov@mail.ru");
+        item = new Item(1L, "Item", "Description", true, owner, null);
+        booking = new Booking(1L, LocalDateTime.now(), LocalDateTime.now().plusDays(1), item, user,
+                BookingStatus.APPROVED);
+        bookingDto = BookingMapper.toBookingDto(booking);
+        bookingShortDto = BookingMapper.toBookingShortDto(booking);
+    }
 
     @Test
-    void createDone() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        assertEquals(user2.getName(), bookingDto.getBooker().getName());
-        assertEquals(item.getName(), bookingDto.getItem().getName());
-        assertEquals(booking.getStatus(), bookingDto.getStatus());
+    public void createBookingTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(owner));
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        when(bookingRepository.save(any(Booking.class)))
+                .thenReturn(booking);
+
+        BookingDto result = bookingService.create(bookingShortDto, 1L);
+
+        assertEquals(bookingDto.getItem().getId(), result.getItem().getId());
+        assertEquals(bookingDto.getStart(), result.getStart());
+        assertEquals(bookingDto.getEnd(), result.getEnd());
+    }
+
+    @Test
+    public void approveBookingTest() {
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        when(bookingRepository.save(any(Booking.class)))
+                .thenReturn(booking);
+
+        BookingDto result = bookingService.approve(1L, 2L, true);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals(BookingStatus.APPROVED, result.getStatus());
     }
 
 
     @Test
-    void createWithPastDateTime() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now(), LocalDateTime.now(), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        assertThrows(ValidationException.class, () -> bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest)));
+    public void getByIdTest() {
+        item.setOwner(owner);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        BookingDto result = bookingService.getById(1L, 1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
     }
 
     @Test
-    void createWithFutureDateTime() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(2), LocalDateTime.now(), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        assertThrows(ValidationException.class, () -> bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest)));
+    public void findAllByBookerStateRejectedTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerAndStatusEquals(any(User.class), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByUser(1L, BookingState.REJECTED, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void createWithBookerId() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        assertThrows(NotFoundException.class, () -> bookingService.postBookingByUser(user.getId(), BookingMapper.bookingDtoInputId(booking)));
+    public void findAllByBookerStateWaitingTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerAndStatusEquals(any(User.class), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByUser(1L, BookingState.WAITING, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void createWithItemNotAvailable() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        Item itemToTest = new Item(1L, "item", "deskitem", Boolean.FALSE, user2, null);
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(itemToTest));
-        itemToTest.setId(itemDto.getId());
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(2), LocalDateTime.now(), itemToTest, user, Status.WAITING);
-        assertThrows(ValidationException.class, () -> bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest)));
+    public void findAllByBookerStateCurrentTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerAndStartBeforeAndEndAfterOrderByStartDesc(any(User.class), any(LocalDateTime.class),
+                        any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByUser(1L, BookingState.CURRENT, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void findAllByBookerStateFutureTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerAndStartAfter(any(User.class), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByUser(1L, BookingState.FUTURE, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void findAllByBookerStatePastTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerAndEndBefore(any(User.class), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByUser(1L, BookingState.PAST, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void findAllByBookerStateAllTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBooker(any(User.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+
+        List<BookingDto> result = bookingService
+                .getAllByUser(1L, BookingState.ALL, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
 
     @Test
-    void createWithNullEndAndStart() {
-        Booking bookingToTest = new Booking(null, null, null, item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        assertThrows(ValidationException.class, () -> bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest)));
+    public void findAllByItemOwnerStateWaitingTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwnerAndStatusEquals(any(User.class), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByOwner(1L, BookingState.WAITING, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void createWithFutureStartTime() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(3), LocalDateTime.now().minusHours(3), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        assertThrows(ValidationException.class, () -> bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest)));
+    public void findAllByItemOwnerStateCurrentTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwnerAndStartBeforeAndEndAfter(any(User.class), any(LocalDateTime.class),
+                        any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByOwner(1L, BookingState.CURRENT, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void patchBookingDone() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        booking.setId(bookingDto.getId());
-        BookingDto patchBookingDto = bookingService.patchBookingByUser(user.getId(), booking.getId(), Boolean.TRUE);
-        assertEquals(user2.getName(), patchBookingDto.getBooker().getName());
-        assertEquals(item.getName(), patchBookingDto.getItem().getName());
-        assertEquals(Status.APPROVED, patchBookingDto.getStatus());
+    public void findAllByItemOwnerStateFutureTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwnerAndStartAfter(any(User.class), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByOwner(1L, BookingState.FUTURE, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void patchBookingApproved() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.APPROVED);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        bookingToTest.setId(bookingDto.getId());
-        BookingDto patchBookingDto = bookingService.patchBookingByUser(user.getId(), bookingToTest.getId(), Boolean.FALSE);
-        assertEquals(user2.getName(), patchBookingDto.getBooker().getName());
-        assertEquals(item.getName(), patchBookingDto.getItem().getName());
-        assertEquals(Status.REJECTED, patchBookingDto.getStatus());
+    public void findAllByItemOwnerStatePastTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwnerAndEndBefore(any(User.class), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByOwner(1L, BookingState.PAST, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void getAllBookingsByUserTest() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.ALL.toString(), user2.getId(), 0, 25);
-        assertEquals(1, returnList.size());
+    public void findAllByItemOwnerStateAllTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwner(any(User.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService.getAllByOwner(1L, BookingState.ALL, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void getWaitingBookingsByUserTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.WAITING.toString(), user2.getId(), 0, 25);
-        assertEquals(1, returnList.size());
+    public void findAllByItemOwnerStateRejectedTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByItemOwnerAndStatusEquals(any(User.class), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(booking)));
+
+        List<BookingDto> result = bookingService
+                .getAllByOwner(1L, BookingState.REJECTED, 0, 10);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void getRejectedBookingsByUserTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.CANCELED);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.REJECTED.toString(), user2.getId(), 0, 25);
-        assertNotNull(returnList.size());
+    public void createBookingWrongDateTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(owner));
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        bookingShortDto.setStart(LocalDateTime.now());
+        bookingShortDto.setEnd(LocalDateTime.now().minusDays(1));
+
+        Exception e = assertThrows(BadRequestException.class,
+                () -> {
+                    bookingService.create(bookingShortDto, 1L);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void getFutureBookingsByUserTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser("FUTURE", user2.getId(), 0, 25);
-        assertEquals(1, returnList.size());
+    public void approveBookingWrongUserTest() {
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        Exception e = assertThrows(NotFoundException.class,
+                () -> {
+                    bookingService.approve(1L, 1L, true);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void getPastBookingsByUserTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(5), LocalDateTime.now().plusSeconds(6), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.PAST.toString(), user2.getId(), 0, 25);
-        assertNotNull(returnList.size());
+    public void approveBookingWrongBookingIdTest() {
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        Exception e = assertThrows(NotFoundException.class,
+                () -> {
+                    bookingService.approve(7L, 1L, true);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void getCurrentBookingsByUserTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(5), LocalDateTime.now().plusSeconds(6), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByUser(State.CURRENT.toString(), user2.getId(), 0, 25);
-        assertNotNull(returnList.size());
+    public void createBookingWrongOwnerTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(null));
+
+        Exception e = assertThrows(NotFoundException.class,
+                () -> {
+                    bookingService.create(bookingShortDto, 1L);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void getAllBookingsByOwnerTest() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.ALL.toString(), user.getId(), 0, 25);
-        assertEquals(1, returnList.size());
+    public void createBookingWrongItemTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(owner));
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(null));
+
+        Exception e = assertThrows(NotFoundException.class,
+                () -> {
+                    bookingService.create(bookingShortDto, 1L);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void getWaitingBookingsByOwnerTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.WAITING.toString(), user.getId(), 0, 25);
-        assertEquals(1, returnList.size());
-    }
+    public void approveBookingWrongUserIdTest() {
+        booking.setStatus(BookingStatus.WAITING);
 
-    @Test
-    void getRejectedBookingsByOwnerTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.CANCELED);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.REJECTED.toString(), user.getId(), 0, 25);
-        assertNotNull(returnList.size());
-    }
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
 
-    @Test
-    void getFutureBookingsByOwnerTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.FUTURE.toString(), user.getId(), 0, 25);
-        assertEquals(1, returnList.size());
+        Exception e = assertThrows(NotFoundException.class,
+                () -> {
+                    bookingService.approve(1L, 1L, true);
+                });
+        assertNotNull(e);
     }
-
-    @Test
-    void getPastBookingsByOwnerTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(5), LocalDateTime.now().plusSeconds(6), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.PAST.toString(), user.getId(), 0, 25);
-        assertNotNull(returnList.size());
-    }
-
-    @Test
-    void getCurrentBookingsByOwnerTest() {
-        Booking bookingToTest = new Booking(null, LocalDateTime.now().plusSeconds(5), LocalDateTime.now().plusSeconds(6), item, user, Status.WAITING);
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(bookingToTest));
-        List<BookingDto> returnList = bookingService.getAllBokingsByOwner(State.CURRENT.toString(), user.getId(), 0, 25);
-        assertNotNull(returnList.size());
-    }
-
-    @Test
-    void getBookingById() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        BookingDto bookingDtoId = bookingService.getBookingById(bookingDto.getId(), user2.getId());
-        assertEquals(bookingDto.getBooker().getName(), bookingDtoId.getBooker().getName());
-        assertEquals(bookingDto.getItem().getName(), bookingDtoId.getItem().getName());
-        assertEquals(bookingDto.getStatus(), bookingDtoId.getStatus());
-    }
-
-    @Test
-    void getBookingByIdByOtherUser() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        UserDto userDto2 = userService.create(UserMapper.toUserDto(user2));
-        user2.setId(userDto2.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
-        BookingDto bookingDto = bookingService.postBookingByUser(user2.getId(), BookingMapper.bookingDtoInputId(booking));
-        assertThrows(NotFoundException.class, () -> bookingService.getBookingById(bookingDto.getId(), 5L));
-    }
-
 }

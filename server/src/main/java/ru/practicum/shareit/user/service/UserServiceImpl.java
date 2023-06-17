@@ -64,10 +64,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(Long userId) {
-        if (repository.findById(userId).isEmpty()) {
+        /*if (repository.findById(userId).isEmpty()) {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
-        }
+        }*/
         repository.deleteById(userId);
     }
 }

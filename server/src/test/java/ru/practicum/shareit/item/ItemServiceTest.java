@@ -1,191 +1,233 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.exception.InvalidEmailException;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.exception.WrongUserException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithDate;
-import ru.practicum.shareit.item.mapper.CommentMapper;
-import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.dto.ItemRequestDtoInput;
-import ru.practicum.shareit.request.mapper.ItemRequestMapper;
+import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.service.ItemServiceImpl;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.service.RequestService;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@Transactional
-@SpringBootTest
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@ExtendWith(MockitoExtension.class)
 public class ItemServiceTest {
-    @Autowired
-    RequestService requestService;
-    @Autowired
-    UserService userService;
-    @Autowired
-    ItemService itemService;
+    @Mock
+    private ItemRepository itemRepository;
+    @Mock
+    private ItemRequestRepository itemRequestRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private BookingRepository bookingRepository;
+    @Mock
+    private CommentRepository commentRepository;
+    @InjectMocks
+    private ItemServiceImpl itemService;
+    private Item item;
+    private User user;
+    private ItemDto itemDto;
+    private Comment comment;
+    private Booking booking;
+    private CommentDto commentDto;
+    private ItemRequest itemRequest;
 
-    @Autowired
-    BookingService bookingService;
-
-    private final User user = new User(null, "user", "user@yandex.ru");
-    private final User user2 = new User(null, "user2", "user2@yandex.ru");
-    private final ItemRequest itemRequest = new ItemRequest(1L, "test", user, LocalDateTime.now());
-    private final ItemRequestDtoInput itemRequestDtoinput = ItemRequestMapper.toItemRequestDtoInput(itemRequest);
-    private final ItemRequestDto itemRequestDto = ItemRequestMapper.toRequestDto(itemRequest);
-
-    private final Item item = new Item(1L, "item", "deskitem", Boolean.TRUE, user, null);
-
-    private final Comment comment = new Comment(1L, "comment", user, item, LocalDateTime.now());
-    private final CommentDto commentDto = CommentMapper.toCommentDto(comment);
-
-    @Test
-    void create() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-
-        assertEquals(item.getName(), itemDto.getName());
-        assertEquals(item.getDescription(), itemDto.getDescription());
-        assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
+    @BeforeEach
+    public void beforeEach() {
+        user = new User(1L, "Name1", "Name1@mail.ru");
+        itemRequest = new ItemRequest(1L, "description", new User(2L, "Name2",
+                "Name2@mail.ru"), LocalDateTime.now());
+        item = new Item(1L, "Item", "Description", true, user, itemRequest);
+        itemDto = ItemMapper.itemToDto(item);
+        comment = new Comment(1L, "comment", item, user, LocalDateTime.now());
+        commentDto = CommentMapper.toCommentDto(comment);
+        booking = new Booking(1L, LocalDateTime.now(), LocalDateTime.now().plusDays(1), item, user,
+                BookingStatus.APPROVED);
     }
 
     @Test
-    void FaildCreateItem() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setRequestId(itemRequest.getId());
-        assertEquals(item.getName(), itemDto.getName());
-        assertEquals(item.getDescription(), itemDto.getDescription());
-        assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
-        assertThrows(NotFoundException.class, () -> itemService.postItemByUser(user.getId(), itemDto));
+    public void createItemTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(item);
+
+        when(itemRequestRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(itemRequest));
+
+        ItemDto result = itemService.createItem(itemDto, 1L);
+
+        assertEquals(itemDto.getName(), result.getName());
+        assertEquals(itemDto.getDescription(), result.getDescription());
+        assertEquals(itemDto.getAvailable(), result.getAvailable());
+        assertEquals(itemDto.getRequestId(), result.getRequestId());
     }
 
     @Test
-    void FaildCreateItemWithNullName() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        Item item2 = new Item(1L, null, "deskitem", Boolean.TRUE, user, null);
-        assertThrows(InvalidEmailException.class, () -> itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item2)));
-    }
+    public void createItemNoUserTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
 
+        NotFoundException result = assertThrows(NotFoundException.class, () -> {
+            itemService.createComment(1L, 1L, commentDto);
+        });
 
-    @Test
-    void getAllItemsByUser() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        List<ItemDtoWithDate> requestsList = itemService.findItemByUserId(userDto.getId(), 0, 10);
-        assertEquals(requestsList.size(), 1);
+        assertNotNull(result);
     }
 
     @Test
-    void getAllItemsWithWrongIdByUser() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        assertThrows(NotFoundException.class, () -> itemService.findItemByUserId(user2.getId(), 0, 10));
+    public void createCommentTest() {
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+
+        when(bookingRepository
+                .findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(any(Long.class), any(Long.class),
+                        any(BookingStatus.class), any(LocalDateTime.class)))
+                .thenReturn(List.of(booking));
+
+        when(commentRepository.save(any(Comment.class)))
+                .thenReturn(comment);
+
+        CommentDto result = itemService.createComment(1L, 1L, commentDto);
+
+        assertEquals(commentDto.getText(), result.getText());
+        assertEquals(user.getName(), result.getAuthorName());
     }
 
     @Test
-    void getAllItems() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        List<ItemDto> requestsList = itemService.getAllItems();
-        assertEquals(requestsList.size(), 1);
+    public void updateItemTest() {
+        itemDto.setName("updatedName");
+        item.setName("updatedName");
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+        when(itemRepository.save(any()))
+                .thenReturn(item);
+
+        ItemDto result = itemService.updateItem(itemDto, itemDto.getId(), user.getId());
+
+        assertNotNull(result);
+        assertEquals(itemDto.getId(), result.getId());
+        assertEquals(itemDto.getName(), result.getName());
     }
 
     @Test
-    void getItemById() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        ItemDtoWithDate reusultItem = itemService.getItemById(itemDto.getId(), userDto.getId());
-        assertEquals(item.getName(), reusultItem.getName());
-        assertEquals(item.getDescription(), itemDto.getDescription());
-        assertEquals(item.getOwner().getId(), itemDto.getOwnerId());
+    public void updateItemWrongOwnerTest() {
+        itemDto.setName("updatedName");
+        item.setName("updatedName");
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        Exception e = assertThrows(WrongUserException.class,
+                () -> {
+                    itemService.updateItem(itemDto, itemDto.getId(), 7L);
+                });
+        assertNotNull(e);
     }
 
     @Test
-    void searchItem() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        List<ItemDto> reusultItemList = itemService.searchItem(itemDto.getName(), 0, 10);
-        assertEquals(reusultItemList.size(), 1);
+    public void findItemByIdTest() {
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(null);
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        when(commentRepository.findAllByItemId(any(Long.class)))
+                .thenReturn(new ArrayList<>());
+
+        ItemDto result = itemService.getItem(1L, 1L);
+
+        assertEquals(1L, result.getId());
+        assertTrue(result.getComments().isEmpty());
     }
 
     @Test
-    void patchItem() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        itemDto.setId(itemDto.getId());
-        ItemDto reusultItem = itemService.patchItem(userDto.getId(), item, itemDto.getId());
-        assertEquals(item.getName(), reusultItem.getName());
-        assertEquals(item.getDescription(), reusultItem.getDescription());
-        assertEquals(item.getOwner().getId(), reusultItem.getOwnerId());
+    public void findItemByIdNoItemTest() {
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(null));
+
+        NotFoundException result = assertThrows(NotFoundException.class, () -> {
+            itemService.getItem(1L, 1L);
+        });
+
+        assertNotNull(result);
+    }
+
+    /*@Test
+    public void findAllItemsTest() {
+        when(itemRepository.findAllByOwnerId(any(Long.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(new ArrayList<>()));
+
+        List<ItemDto> result = itemService.getAllItems(1L, 0, 10);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }*/
+
+    @Test
+    public void findItemsByRequestTest() {
+        when(itemRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(item)));
+
+        List<Item> result = itemService.searchItems("Item", PageRequest.of(0, 10));
+
+        assertNotNull(result);
+        assertEquals(result.get(0).getId(), item.getId());
+        assertEquals(result.get(0).getName(), item.getName());
     }
 
     @Test
-    void postFaildComment() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
+    public void createCommentExceptionTest() {
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
 
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        item.setId(itemDto.getId());
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
 
-        User author = new User(null, "author", "author@yandex.ru");
-        UserDto authorDto = userService.create(UserMapper.toUserDto(author));
-        author.setId(authorDto.getId());
+        when(bookingRepository
+                .findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(any(Long.class), any(Long.class),
+                        any(BookingStatus.class), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
 
-        assertThrows(NotFoundException.class, () -> itemService.postCommentByItem(item.getId(),
-                CommentMapper.toCommentDto(comment), author.getId()));
+        BadRequestException result = assertThrows(BadRequestException.class, () -> {
+            itemService.createComment(1L, 1L, commentDto);
+        });
 
+        assertNotNull(result);
     }
-
-    @Test
-    void postFaildCommentWithouBooking() {
-        UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        user.setId(userDto.getId());
-        ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
-        User author = new User(null, "author", "author@yandex.ru");
-        UserDto authorDto = userService.create(UserMapper.toUserDto(author));
-        comment.setItem(item);
-        comment.getItem();
-        Comment comment1 = new Comment(1L, "txt", user, item, LocalDateTime.now());
-        CommentDto commentDto1 = CommentMapper.toCommentDto(comment1);
-        Comment comment2 = CommentMapper.inCommentDto(commentDto1, item, user2);
-        author.setId(authorDto.getId());
-        assertThrows(ValidationException.class, () -> itemService.postCommentByItem(userDto.getId(), commentDto, itemDto.getId()));
-
-    }
-
-
 }

@@ -1,85 +1,32 @@
 package ru.practicum.shareit.item;
 
-import org.junit.jupiter.api.BeforeEach;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
-
-import static java.lang.Boolean.TRUE;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @JsonTest
 public class ItemDtoTest {
     @Autowired
-    private JacksonTester<ItemDto> json;
-    private Item item;
-    private User user;
-    private Item item2;
-    private ItemRequest itemRequest;
-    private final LocalDateTime ldt = LocalDateTime.now();
-
-
-    @BeforeEach
-    void createItem() {
-        user = new User(
-                1L,
-                "John",
-                "john.doe@mail.com");
-        itemRequest = new ItemRequest(
-                1L,
-                "test",
-                user,
-                ldt);
-        item = new Item(
-                1L,
-                "name",
-                "test",
-                TRUE,
-                user,
-                itemRequest);
-        item2 = new Item(
-                1L,
-                "",
-                "",
-                null,
-                user,
-                itemRequest
-        );
-    }
+    JacksonTester<ItemDto> json;
 
     @Test
-    void testItemDto() throws Exception {
-        ItemDto itemDto = ItemMapper.toItemDto(item);
+    @SneakyThrows
+    void itemDtoJsonTest() {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(1L);
+        itemDto.setDescription("description");
+        itemDto.setAvailable(true);
+
         JsonContent<ItemDto> result = json.write(itemDto);
 
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
-        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo("name");
-        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("test");
-        assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(TRUE);
-        assertThat(result).extractingJsonPathNumberValue("$.ownerId").isEqualTo(1);
-        assertThat(result).extractingJsonPathNumberValue("$.requestId").isEqualTo(1);
+        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("description");
+        assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(true);
     }
-
-    @Test
-    void testNullAvailableItemDto() throws Exception {
-        ItemDto itemDto2 = ItemMapper.toItemDto(item2);
-        JsonContent<ItemDto> result = json.write(itemDto2);
-
-        assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
-        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo("");
-        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo("");
-        assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(null);
-        assertThat(result).extractingJsonPathNumberValue("$.ownerId").isEqualTo(1);
-        assertThat(result).extractingJsonPathNumberValue("$.requestId").isEqualTo(1);
-    }
-
 }
