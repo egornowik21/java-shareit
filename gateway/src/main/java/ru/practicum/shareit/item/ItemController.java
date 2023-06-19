@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -39,13 +41,12 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> postCommentByItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                    @RequestBody CommentDto commentDto,
-                                                    @PathVariable("itemId") Long itemId) {
-        log.info("POST/comments - добавлен комментарий от пользователя - {}.", userId);
-        return itemClient.postCommentItem(itemId, userId, commentDto);
-
+    public ResponseEntity<Object> createComment(@PathVariable Long itemId,
+                                                @RequestHeader("X-Sharer-User-Id") Long userId,
+                                                @Valid @RequestBody CommentDto commentDto) {
+        return itemClient.createComment(commentDto, itemId, userId);
     }
+
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<Object> patchItem(@RequestHeader("X-Sharer-User-Id") Long userId,

@@ -2,6 +2,7 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -36,13 +37,13 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> findAllRequestsByOtherUsers(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                              @PositiveOrZero @RequestParam(value = "from", required = false) Integer from,
-                                                              @RequestParam(value = "size", required = false) Integer size) {
-        if (from == null || size == null) {
-            return (ResponseEntity<Object>) Collections.emptyList();
+                                                              @RequestParam(defaultValue = "0") int from,
+                                                              @RequestParam(defaultValue = "20") int size) {
+        if (from<0 || size<=0) {
+            throw new ValidationException("Bad Request");
         }
         log.info("GET/requests - получен список всех запросов от пользователя с ID - {}.", userId);
-        return requestClient.getRequestsByOtherUsers(userId, from, size);
+        return requestClient.getAllItemRequestByUser(PageRequest.of(from, size), userId);
     }
 
     @GetMapping("/{requestId}")

@@ -3,6 +3,7 @@ package ru.practicum.shareit.request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -34,12 +35,12 @@ public class RequestClient extends BaseClient {
         return get("/",userId);
     }
 
-    public ResponseEntity<Object> getRequestsByOtherUsers(long userId, Integer from, Integer size) {
+    public ResponseEntity<Object> getAllItemRequestByUser(Pageable pageable, Long userId) {
         Map<String, Object> parameters = Map.of(
-                "from", from,
-                "size", size
+                "from", pageable.getPageNumber(),
+                "size", pageable.getPageSize()
         );
-        return get("?from={from}&size={size}", userId, parameters);
+        return get("/all?from={from}&size={size}", userId, parameters);
     }
 
     public ResponseEntity<Object> getRequestById(Long requestId, Long userId) {
