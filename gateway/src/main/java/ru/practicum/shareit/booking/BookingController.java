@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.booking.dto.State;
 import ru.practicum.shareit.exception.ValidationException;
@@ -13,7 +12,6 @@ import ru.practicum.shareit.exception.ValidationException;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.util.List;
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -25,15 +23,15 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getAllBookingsByUserID(@Validated @RequestHeader("X-Sharer-User-Id") Long userId,
-                                                   @RequestParam(defaultValue = "ALL") String state,
-                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                                   @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
+                                                         @RequestParam(defaultValue = "ALL") String state,
+                                                         @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                         @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/bookings - получено бронирование для пользователя по ID - {}.", userId);
         State status = State.fromString(state);
         if (status == null) {
             throw new ValidationException("Unknown state: " + state);
         }
-        if (from<0||size<0) {
+        if (from < 0 || size < 0) {
             throw new ValidationException("Введены отрицательные значения");
         }
         return bookingClient.getBookings(userId, state, from, size);

@@ -4,13 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-
-import javax.validation.constraints.PositiveOrZero;
-import java.util.Collections;
 
 @RestController
 @RequestMapping(path = "/requests")
@@ -39,7 +35,7 @@ public class ItemRequestController {
     public ResponseEntity<Object> findAllRequestsByOtherUsers(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                               @RequestParam(defaultValue = "0") int from,
                                                               @RequestParam(defaultValue = "20") int size) {
-        if (from<0 || size<=0) {
+        if (from < 0 || size <= 0) {
             throw new ValidationException("Bad Request");
         }
         log.info("GET/requests - получен список всех запросов от пользователя с ID - {}.", userId);
