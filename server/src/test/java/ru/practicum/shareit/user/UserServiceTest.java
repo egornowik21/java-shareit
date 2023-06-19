@@ -1,97 +1,102 @@
 package ru.practicum.shareit.user;
 
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.user.service.UserServiceImpl;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(MockitoExtension.class)
+@Transactional
+@SpringBootTest
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceTest {
-    @Mock
-    private UserRepository userRepository;
-    @InjectMocks
-    private UserServiceImpl userService;
-    private User user;
+    @Autowired
+    private final UserService userService;
 
-    @BeforeEach
-    private void beforeEach() {
-        user = new User(1L, "Name1", "Name1@mail.ru");
+    private final User user = new User(null, "user", "user@yandex.ru");
+
+    @Test
+    void create() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        assertEquals(user.getEmail(), userDto.getEmail());
+        assertEquals(user.getName(), userDto.getName());
+    }
+
+
+    @Test
+    void patch() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        userDto.setName("newName");
+        userDto.setEmail("new@email.ru");
+        UserDto updateUserDto = userService.patch(user.getId(), userDto);
+
+        assertEquals(updateUserDto.getName(), userDto.getName());
+        assertEquals(updateUserDto.getEmail(), userDto.getEmail());
     }
 
     @Test
-    void createTest() {
-        UserDto savedUser = new UserDto();
-        savedUser.setName(user.getName());
-        savedUser.setEmail(user.getEmail());
+    void patchNameUser() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        userDto.setName("newName");
+        userDto.setEmail(null);
+        UserDto updateUserDto = userService.patch(user.getId(), userDto);
 
-        when(userRepository.save(any(User.class)))
-                .thenReturn(user);
-
-        UserDto newUser = userService.createUser(savedUser);
-
-        assertEquals(1, newUser.getId());
-        assertEquals(savedUser.getName(), newUser.getName());
-        assertEquals(savedUser.getEmail(), newUser.getEmail());
-
-        verify(userRepository, times(1)).save(any(User.class));
+        assertEquals(updateUserDto.getName(), userDto.getName());
+        assertEquals(userDto.getEmail(), userDto.getEmail());
     }
 
     @Test
-    void updateTest() {
-        user.setName("updated name");
-        UserDto inputDto = UserMapper.userToDto(user);
+    void patchMailUser() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        userDto.setEmail("new@email.ru");
+        userDto.setName(null);
+        UserDto updateUserDto = userService.patch(user.getId(), userDto);
 
-        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
-        when(userRepository.save(any())).thenReturn(user);
-
-        User userDto = userService.updateUser(user, inputDto);
-
-        assertEquals(userDto.getId(), 1);
-        assertEquals(userDto.getName(), inputDto.getName());
+        assertEquals(userDto.getName(), userDto.getName());
+        assertEquals(updateUserDto.getEmail(), userDto.getEmail());
     }
 
     @Test
-    void findByIdTest() {
-        when(userRepository.findById(any(Long.class))).thenReturn(Optional.ofNullable(user));
-
-        User userDto = userService.getUser(1);
-
-        assertEquals(1, userDto.getId());
-
-        verify(userRepository, times(1)).findById(any(Long.class));
+    void deleteUser() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        List<UserDto> usersList = userService.findAll();
+        userService.deleteUserById(userDto.getId());
+        List<UserDto> usersListAfterDelete = userService.findAll();
+        assertEquals(usersList.size(), usersListAfterDelete.size() + 1);
     }
 
     @Test
-    void deleteByIdTest() {
-        userService.deleteUser(1L);
-        verify(userRepository, times(1)).deleteById(1L);
+    void getUserById() {
+        UserDto userDto = userService.create(UserMapper.toUserDto(user));
+        user.setId(userDto.getId());
+        UserDto userDtoById = userService.getUserById(userDto.getId());
+        assertEquals(user.getId(), userDtoById.getId());
     }
 
     @Test
-    void getAllUsersTest() {
-        when(userRepository.findAll()).thenReturn(List.of(user));
-
-        List<User> users = userService.findAllUsers();
-
-        assertFalse(users.isEmpty());
-        assertEquals(user.getId(), users.get(0).getId());
-
-        verify(userRepository, times(1)).findAll();
+    void deleteWrongUserTest() {
+        assertThrows(EmptyResultDataAccessException.class, () -> userService.deleteUserById(7L));
     }
+
+    @Test
+    void getWrongUserTest() {
+        assertThrows(NotFoundException.class, () -> userService.getUserById(1L));
+    }
+
 
 }
