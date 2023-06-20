@@ -70,7 +70,7 @@ public class ItemServiceTest {
     }
 
     @Test
-    void FaildCreateItem() {
+    void faildCreateItem() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
         ItemDto itemDto = itemService.postItemByUser(user.getId(), ItemMapper.toItemDto(item));
@@ -82,7 +82,7 @@ public class ItemServiceTest {
     }
 
     @Test
-    void FaildCreateItemWithNullName() {
+    void faildCreateItemWithNullName() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
         user.setId(userDto.getId());
         Item item2 = new Item(1L, null, "deskitem", Boolean.TRUE, user, null);
