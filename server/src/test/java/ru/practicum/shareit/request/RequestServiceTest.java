@@ -11,7 +11,6 @@ import ru.practicum.shareit.request.dto.ItemRequestDtoInput;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.RequestService;
-
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -33,7 +32,7 @@ public class RequestServiceTest {
     UserService userService;
 
     private final User user = new User(null, "user", "user@yandex.ru");
-    private final User user2 = new User(null,"user2","user2@yandex.ru");
+    private final User user2 = new User(null, "user2", "user2@yandex.ru");
     private final ItemRequest itemRequest = new ItemRequest(1L, "test", user, LocalDateTime.now());
     private final ItemRequestDto itemRequestDto = ItemRequestMapper.toRequestDto(itemRequest);
 
@@ -41,7 +40,7 @@ public class RequestServiceTest {
     @Test
     void create() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        ItemRequestDto testRequest = requestService.postRequestByUser(userDto.getId(),itemRequestDto);
+        ItemRequestDto testRequest = requestService.postRequestByUser(userDto.getId(), itemRequestDto);
         assertEquals(testRequest.getId(), itemRequestDto.getId());
         assertEquals(testRequest.getDescription(), itemRequestDto.getDescription());
     }
@@ -49,7 +48,7 @@ public class RequestServiceTest {
     @Test
     void getAllRequestsByUser() {
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        requestService.postRequestByUser(userDto.getId(),itemRequestDto);
+        requestService.postRequestByUser(userDto.getId(), itemRequestDto);
         List<ItemRequestDtoInput> requestsList = requestService.getAllRequestsByUser(userDto.getId());
         assertEquals(requestsList.size(), 1);
     }
@@ -84,9 +83,9 @@ public class RequestServiceTest {
     void getRequestByOwnerWrong() {
         UserDto userDtoNotOwner = userService.create(UserMapper.toUserDto(user2));
         UserDto userDto = userService.create(UserMapper.toUserDto(user));
-        requestService.postRequestByUser(userDto.getId(),itemRequestDto);
-        List<ItemRequestDtoInput> requestsList = requestService.getAllRequests(userDto.getId(),0,10);
-        assertEquals(requestsList.size(),0);
+        requestService.postRequestByUser(userDto.getId(), itemRequestDto);
+        List<ItemRequestDtoInput> requestsList = requestService.getAllRequests(userDto.getId(), 0, 10);
+        assertEquals(requestsList.size(), 0);
     }
 
     @Test

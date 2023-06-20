@@ -28,7 +28,6 @@ public class RequestRepositoryTest {
     private UserRepository userRepository;
 
 
-
     @Test
     void testfindByRequestorIdNot() {
         User user = new User();

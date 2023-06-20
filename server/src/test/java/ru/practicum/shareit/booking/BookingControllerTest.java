@@ -105,9 +105,9 @@ public class BookingControllerTest {
 
     @Test
     void patchBookingTest() throws Exception {
-        when(bookingService.patchBookingByUser(anyLong(), anyLong(),any())).thenReturn(bookingDto);
+        when(bookingService.patchBookingByUser(anyLong(), anyLong(), any())).thenReturn(bookingDto);
 
-        mockMvc.perform(patch("/bookings/{bookingId}", bookingDto.getId(),Boolean.TRUE)
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingDto.getId(), Boolean.TRUE)
                         .content(objectMapper.writeValueAsString(bookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)

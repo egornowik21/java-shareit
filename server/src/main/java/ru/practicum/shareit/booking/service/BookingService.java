@@ -6,7 +6,7 @@ import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import java.util.List;
 
 public interface BookingService {
-    BookingDto postBookingByUser(Long userId,BookingDtoInput bookingDtoInput);
+    BookingDto postBookingByUser(Long userId, BookingDtoInput bookingDtoInput);
 
     BookingDto patchBookingByUser(Long userId, Long bookingId, Boolean approved);
 
@@ -14,5 +14,5 @@ public interface BookingService {
 
     List<BookingDto> getAllBokingsByUser(String state, Long userId, Integer from, Integer size);
 
-    List<BookingDto> getAllBokingsByOwner(String state, Long userId,Integer from, Integer size);
+    List<BookingDto> getAllBokingsByOwner(String state, Long userId, Integer from, Integer size);
 }

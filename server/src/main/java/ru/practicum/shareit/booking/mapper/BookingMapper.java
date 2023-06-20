@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.dto.BookingDtoInput;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BookingMapper {
     public static BookingDtoInput bookingDtoInputId(Booking booking) {
@@ -19,6 +20,7 @@ public class BookingMapper {
                 .status(booking.getStatus())
                 .build();
     }
+
     public static BookingDto bookingDto(Booking booking) {
         return BookingDto.builder()
                 .id(booking.getId())

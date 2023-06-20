@@ -17,6 +17,7 @@ public class UserDtoTest {
     @Autowired
     private JacksonTester<UserDto> json;
     private User user;
+
     @BeforeEach
     void createUser() {
         user = new User(

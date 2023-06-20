@@ -47,13 +47,13 @@ public class ItemServiceImpl implements ItemService {
     private final RequestRepository requestRepository;
 
     @Override
-    public List<ItemDtoWithDate> findItemByUserId(Long userId,Integer from, Integer size) {
+    public List<ItemDtoWithDate> findItemByUserId(Long userId, Integer from, Integer size) {
         if (userId == null) {
             log.error("Пользователь с id - {} не существует", userId);
             throw new NotFoundException("Пользователь не найден");
         }
         Pageable pageable = PageRequest.of(from, size);
-        return itemRepository.findByOwnerIdOrderByIdAsc(userId,pageable)
+        return itemRepository.findByOwnerIdOrderByIdAsc(userId, pageable)
                 .stream()
                 .map(this::setCommenstsToItem)
                 .map(this::setBookingToItem)
@@ -138,8 +138,8 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto postItemByUser(Long userId, ItemDto itemDto) {
         checkItem(ItemMapper.inItemDtoWithoutUser(itemDto));
         User user = getUserById(userId);
-        Item item = ItemMapper.inItemDto(itemDto,user);
-        if (itemDto.getRequestId()!=null) {
+        Item item = ItemMapper.inItemDto(itemDto, user);
+        if (itemDto.getRequestId() != null) {
             ItemRequest itemRequest = requestRepository.findById(itemDto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос не найден"));
             item.setRequest(itemRequest);
@@ -177,7 +177,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> searchItem(String text, Integer from, Integer size) {
         String query = text.toLowerCase();
         Pageable pageable = PageRequest.of(from, size);
-        return itemRepository.search(query,pageable)
+        return itemRepository.search(query, pageable)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(toList());
@@ -227,6 +227,7 @@ public class ItemServiceImpl implements ItemService {
         }
         return itemDtoWithDate;
     }
+
     private User getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

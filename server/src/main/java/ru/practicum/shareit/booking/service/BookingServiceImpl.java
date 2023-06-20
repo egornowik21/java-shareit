@@ -105,7 +105,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllBokingsByUser(String state, Long userId, Integer from, Integer size) {
         User user = getUserById(userId);
         List<Booking> bookingByState = new ArrayList<>();
-        Pageable pageable = PageRequest.of(from/size, size,Sort.by(DESC, "start"));
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by(DESC, "start"));
         switch (state) {
             case "ALL":
                 bookingByState = bookingRepository.findByBooker_Id(userId, pageable);
@@ -139,10 +139,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    public List<BookingDto> getAllBokingsByOwner(String state, Long userId,Integer from, Integer size) {
+    public List<BookingDto> getAllBokingsByOwner(String state, Long userId, Integer from, Integer size) {
         User user = getUserById(userId);
         List<Booking> bookingByState = new ArrayList<>();
-        Pageable pageable = PageRequest.of(from, size,Sort.by(DESC, "start"));
+        Pageable pageable = PageRequest.of(from, size, Sort.by(DESC, "start"));
         switch (state) {
             case "ALL":
                 bookingByState = bookingRepository.findByItem_Owner_Id(user.getId(), pageable);
@@ -174,6 +174,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(BookingMapper::bookingDto)
                 .collect(Collectors.toList());
     }
+
     private User getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

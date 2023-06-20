@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ItemService {
 
-    List<ItemDtoWithDate> findItemByUserId(Long userId,Integer from, Integer size);
+    List<ItemDtoWithDate> findItemByUserId(Long userId, Integer from, Integer size);
 
     ItemDtoWithDate getItemById(Long itemId, Long userId);
 

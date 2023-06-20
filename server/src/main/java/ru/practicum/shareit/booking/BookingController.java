@@ -29,8 +29,8 @@ public class BookingController {
 
     @PatchMapping("/{bookingId}")
     public BookingDto patchBooking(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                @RequestParam(value = "approved") boolean approved,
-                                @PathVariable("bookingId") Long bookingId) {
+                                   @RequestParam(value = "approved") boolean approved,
+                                   @PathVariable("bookingId") Long bookingId) {
         log.info("PATCH/bookings - бронирование обновлено для ID пользователя - {}.", userId);
         return bookingService.patchBookingByUser(userId, bookingId, approved);
     }
@@ -52,7 +52,7 @@ public class BookingController {
         if (status == null) {
             throw new ValidationException("Unknown state: " + state);
         }
-        if (from<0||size<0) {
+        if (from < 0 || size < 0) {
             throw new ValidationException("Введены отрицательные значения");
         }
         return bookingService.getAllBokingsByUser(state, userId, from, size);
@@ -68,7 +68,7 @@ public class BookingController {
         if (status == null) {
             throw new ValidationException("Unknown state: " + state);
         }
-        if (from<0||size<0) {
+        if (from < 0 || size < 0) {
             throw new ValidationException("Введены отрицательные значения");
         }
         return bookingService.getAllBokingsByOwner(status.toString(), userId, from, size);
