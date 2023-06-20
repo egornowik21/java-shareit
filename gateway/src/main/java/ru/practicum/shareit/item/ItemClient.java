@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.Map;
+
 @Service
 public class ItemClient extends BaseClient {
 
