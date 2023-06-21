@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.item.dto.ItemDto;
 
-import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +14,6 @@ import java.util.List;
 @Builder
 public class ItemRequestDtoInput {
     Long id;
-    @NotBlank
     String description;
     Long requestorId;
     List<ItemDto> items;

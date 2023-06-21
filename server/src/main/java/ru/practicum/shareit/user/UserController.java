@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -29,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto saveNewUser(@Valid @RequestBody UserDto userDto) {
+    public UserDto saveNewUser(@RequestBody UserDto userDto) {
         log.info("POST/users - добавлен текущий пользователь.");
         return userService.create(userDto);
     }

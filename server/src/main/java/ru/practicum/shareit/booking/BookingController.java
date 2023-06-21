@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.ValidationException;
 
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -43,10 +42,10 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingDto> getAllBookingsByUserID(@Validated @RequestHeader("X-Sharer-User-Id") Long userId,
+    public List<BookingDto> getAllBookingsByUserID(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                    @RequestParam(defaultValue = "ALL") String state,
-                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                                   @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
+                                                   @RequestParam(defaultValue = "0") Integer from,
+                                                   @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/bookings - получено бронирование для пользователя по ID - {}.", userId);
         State status = State.fromString(state);
         if (status == null) {
@@ -61,8 +60,8 @@ public class BookingController {
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsByOwnerID(@Validated @RequestHeader("X-Sharer-User-Id") Long userId,
                                                     @RequestParam(defaultValue = "ALL") String state,
-                                                    @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                                    @PositiveOrZero @RequestParam(defaultValue = "10") Integer size) {
+                                                    @RequestParam(defaultValue = "0") Integer from,
+                                                    @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET/bookings - получено бронирование для владельца по ID - {}.", userId);
         State status = State.fromString(state);
         if (status == null) {
