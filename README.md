@@ -16,6 +16,7 @@
 - Docker
 - Git
 - Postman
+- Junit, Mockito
 ---------
 ### <a id="title1">Быстрый старт</a>
 Для начала нужно собрать проект с помощью Maven
