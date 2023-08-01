@@ -55,99 +55,49 @@ docker-compose up
 - [X] Реализованы тесты для работы с JSON для DTO
 <img width="500" alt="image" src="https://github.com/egornowik21/java-shareit/assets/114665170/4b935944-2897-4e92-97a3-72be3b84c96e">
 
+------------
 ### <a id="title1">Пример запроса POST</a>
 ```
-http://localhost:8080/users/:userId/events
+http://localhost:9090/users
 ```
 Request
 ```
 {
-  "annotation": "Сплав на байдарках похож на полет.",
-  "category": 2,
-  "description": "Сплав на байдарках похож на полет. На спокойной воде — это парение. На бурной, порожистой — выполнение фигур высшего пилотажа. И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.",
-  "eventDate": "2024-12-31 15:10:05",
-  "location": {
-    "lat": 55.754167,
-    "lon": 37.62
-  },
-  "paid": true,
-  "participantLimit": 10,
-  "requestModeration": false,
-  "title": "Сплав на байдарках"
+    "name": "user",
+    "email": "user@user.com"
 }
 ```
 Response
+```
+ {
+    "id": 1,
+    "name": "user",
+    "email": "user@user.com"
+}
+```
+### <a id="title1">Пример запроса PATCH</a>
+```
+http://localhost:9090/users/:userId
+```
+Request
 ```
 {
-  "annotation": "Эксклюзивность нашего шоу гарантирует привлечение максимальной зрительской аудитории",
-  "category": {
-    "id": 1,
-    "name": "Концерты"
-  },
-  "confirmedRequests": 5,
-  "createdOn": "2022-09-06 11:00:23",
-  "description": "Что получится, если соединить кукурузу и полёт? Создатели \"Шоу летающей кукурузы\" испытали эту идею на практике и воплотили в жизнь инновационный проект, предлагающий свежий взгляд на развлечения...",
-  "eventDate": "2024-12-31 15:10:05",
-  "id": 1,
-  "initiator": {
-    "id": 3,
-    "name": "Фёдоров Матвей"
-  },
-  "location": {
-    "lat": 55.754167,
-    "lon": 37.62
-  },
-  "paid": true,
-  "participantLimit": 10,
-  "publishedOn": "2022-09-06 15:10:05",
-  "requestModeration": true,
-  "state": "PUBLISHED",
-  "title": "Знаменитое шоу 'Летающая кукуруза'",
-  "views": 999
+    "name": "update",
+    "email": "update@user.com"
 }
 ```
-### <a id="title1">Пример запроса GET</a>
-```
-http://localhost:8080/admin/events
-```
 Response
+
 ```
-[
-  {
-    "annotation": "Эксклюзивность нашего шоу гарантирует привлечение максимальной зрительской аудитории",
-    "category": {
-      "id": 1,
-      "name": "Концерты"
-    },
-    "confirmedRequests": 5,
-    "createdOn": "2022-09-06 11:00:23",
-    "description": "Что получится, если соединить кукурузу и полёт? Создатели \"Шоу летающей кукурузы\" испытали эту идею на практике и воплотили в жизнь инновационный проект, предлагающий свежий взгляд на развлечения...",
-    "eventDate": "2024-12-31 15:10:05",
+{
     "id": 1,
-    "initiator": {
-      "id": 3,
-      "name": "Фёдоров Матвей"
-    },
-    "location": {
-      "lat": 55.754167,
-      "lon": 37.62
-    },
-    "paid": true,
-    "participantLimit": 10,
-    "publishedOn": "2022-09-06 15:10:05",
-    "requestModeration": true,
-    "state": "PUBLISHED",
-    "title": "Знаменитое шоу 'Летающая кукуруза'",
-    "views": 999
-  }
-]
+    "name": "update",
+    "email": "update@user.com"
+}
 ```
 
 ### <a id="title1">TODO</a>
-- Поиск событий по локации;
-- Рейтинг пользователя;
-- Подписки на других пользователей;
-- Модерация событий администратором;
-- Добавление Gateway и Spring Security
----------
-[Pull request link](https://github.com/egornowik21/java-explore-with-me/pull/5)
+- Разделение API на приватное, публичное и адмнистративное
+- Добавление подборок вещей
+- Добавление категорий для вещей
+- Добавление Spring Security
